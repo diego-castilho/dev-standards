@@ -333,6 +333,10 @@ skill:
   titled `chore(deps): …`. Security updates arrive on their own, as soon as an advisory is out.
   Add a block for each ecosystem the project uses.
 - A dependency update is merged like any other PR: CI green, merge commit into `develop`.
+- **The checks run as an action.** A project's `standards.yml` calls
+  `diego-castilho/dev-standards/check@vX.Y.Z`, so the version in the tag is the version
+  enforced, and the sync only changes that tag. If the repository restricts which actions may
+  run, allow `diego-castilho/dev-standards/check@*`.
 
 ## Sensitive data
 

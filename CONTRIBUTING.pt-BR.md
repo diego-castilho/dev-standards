@@ -331,6 +331,10 @@ roteiro executável, com os comandos, é a skill [`/xrepo`](.claude/skills/xrepo
   com título `chore(deps): …`. Atualização de segurança chega sozinha, assim que sai o alerta.
   Acrescente um bloco para cada ecossistema que o projeto usa.
 - Atualização de dependência entra como qualquer PR: CI verde, merge commit na `develop`.
+- **As checagens rodam como uma action.** O `standards.yml` do projeto chama
+  `diego-castilho/dev-standards/check@vX.Y.Z`, então a versão da tag é a versão cobrada, e o
+  sync só troca essa tag. Se o repositório restringe as Actions permitidas, libere
+  `diego-castilho/dev-standards/check@*`.
 
 ## Dados sensíveis
 
