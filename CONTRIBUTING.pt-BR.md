@@ -215,7 +215,7 @@ Para um defeito **em produção** que não pode esperar, quando a `develop` já 
 ainda não pode sair. Se a `develop` puder sair inteira, faça uma release patch normal.
 Roteiro executável: skill [`/hotfix`](.claude/skills/hotfix/SKILL.md).
 
-1. **Issue** com `type:bug` e `priority:p0`. **PARE:** confirmar que é hotfix e não release.
+1. **Issue** do tipo `Bug` com Priority `Urgent`. **PARE:** confirmar que é hotfix e não release.
 2. **Branch `hotfix/X.Y.Z`** a partir da **tag em produção**, não da `develop`:
    `git switch -c hotfix/1.4.1 v1.4.0`. Assim nada que está em andamento vai junto.
 3. Na branch, nesta ordem: o teste que falha sem a correção, a correção, o bump de versão
@@ -247,22 +247,35 @@ usa, não repete a mensagem do commit, e cita a issue (`(#123)`).
 **Toda pendência vira issue**, no repositório onde o trabalho acontece, nunca item de um
 `BACKLOG.md`, de um plano ou de uma lista de TODO. Um documento pode agrupar pendências
 (um plano de correção, um roadmap), mas cada item aberto aponta para a sua issue. Use os
-[templates](.github/ISSUE_TEMPLATE/): bug, funcionalidade, tarefa e, entre repositórios,
-pedido xrepo. Issue em branco é desligada.
+[templates](.github/ISSUE_TEMPLATE/): bug, funcionalidade, tarefa, documentação, pergunta
+e, entre repositórios, pedido xrepo. Cada formulário já define o tipo da issue. Issue em
+branco é desligada.
 
-As labels são as mesmas em todos os projetos, criadas por `.standards/labels.sh`:
+Tipo e prioridade são **recursos nativos do GitHub**, definidos uma vez por conta ou
+organização por `.standards/issue-types.sh setup`, a partir de `.standards/issue-types.json`:
+
+| O quê | Valores | Regra |
+|---|---|---|
+| Tipo de issue | `Bug`, `Feature`, `Task`, `Docs`, `Question` | exatamente um |
+| Campo Priority | `Urgent` (bloqueante ou risco ao usuário), `High` (quebrado, sem risco), `Medium` (melhoria relevante), `Low` (pode esperar) | exatamente um, definido na triagem |
+
+`gh issue create --type <Tipo>` define o tipo; o `gh` não tem opção para campo de issue,
+então a prioridade passa por `.standards/issue-types.sh priority <owner/repo> <n> <valor>`.
+Busca: `type:Bug` e `field.priority:urgent`.
+
+As labels cobrem o que o GitHub não tem de nativo. São as mesmas em todos os projetos,
+criadas por `.standards/labels.sh`:
 
 | Grupo | Labels | Regra |
 |---|---|---|
-| Tipo | `type:bug`, `type:feature`, `type:docs`, `type:chore`, `type:question`, `type:contract` | exatamente uma |
-| Prioridade | `priority:p0` (bloqueante ou risco ao usuário), `priority:p1` (quebrado, sem risco), `priority:p2` (pode esperar) | exatamente uma |
+| Contrato | `contract` | a mudança mexe num contrato que outro repositório consome |
 | Estado | `status:needs-info`, `status:needs-decision`, `status:blocked` | zero ou mais |
 | Verificação | `needs-verification` | resolvida, aguardando quem pediu |
 | Entre repos | `xrepo`, `from:<repo>`, `parity` | só com `xrepo.enabled` |
 
 Ciclo de uma issue:
 
-1. Aberta com tipo e prioridade.
+1. Aberta com tipo; a prioridade é definida na triagem.
 2. Branch com o número (`fix/123-slug`) e PR com `Refs #123`.
 3. Depois do merge, um comentário de resolução e o fechamento:
 
@@ -280,8 +293,9 @@ Ciclo de uma issue:
 **Entre repositórios** (`xrepo.enabled`), a issue mora no repo onde o trabalho acontece. O
 roteiro executável, com os comandos, é a skill [`/xrepo`](.claude/skills/xrepo/SKILL.md):
 
-- quem pede abre a issue no outro repo, com `xrepo`, `from:<este-repo>`, tipo e prioridade,
-  passando as labels explicitamente no `gh issue create` (as do template só valem na web);
+- quem pede abre a issue no outro repo com tipo e as labels `xrepo` e `from:<este-repo>`,
+  passados explicitamente no `gh issue create` (o que o template define só vale na web), e
+  depois define a prioridade;
 - quem trata comenta a resolução, adiciona `needs-verification` e fecha;
 - quem pediu confere contra os critérios de aceite e remove `needs-verification`, ou reabre
   dizendo o que falta. **Quem pediu é o único que remove `needs-verification`; quem tratou é

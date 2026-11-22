@@ -47,6 +47,7 @@ existing one, and update it later without overwriting what is specific to your p
    ```bash
    .standards/install.sh --here --name "My Project"
    git switch -c develop && git push -u origin develop
+   .standards/issue-types.sh setup  # once per account or organization
    .standards/labels.sh --prune
    .standards/rulesets.sh          # needs GitHub Pro for private repositories
    ```

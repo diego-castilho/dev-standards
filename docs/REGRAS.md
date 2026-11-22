@@ -260,7 +260,7 @@ ainda não pode sair. Roteiro executável: skill `/hotfix`.
 
 ```mermaid
 flowchart TD
-  A["Issue type:bug + priority:p0"] --> B{"a develop pode sair inteira?"}
+  A["Issue tipo Bug + Priority Urgent"] --> B{"a develop pode sair inteira?"}
   B -- sim --> R["não é hotfix<br/>faça uma release patch"]
   B -- não --> P["PARE · confirmar hotfix"]
   P --> C["hotfix/X.Y.Z a partir da tag em produção<br/>nunca da develop"]
@@ -293,15 +293,18 @@ stateDiagram-v2
   Fechada --> [*]
 ```
 
-| Grupo | Labels | Regra |
+| O quê | Onde | Regra |
 |---|---|---|
-| Tipo | `type:bug`, `type:feature`, `type:docs`, `type:chore`, `type:question`, `type:contract` | exatamente uma |
-| Prioridade | `priority:p0`, `priority:p1`, `priority:p2` | exatamente uma |
+| Tipo | tipo de issue nativo: `Bug`, `Feature`, `Task`, `Docs`, `Question` | exatamente um |
+| Prioridade | campo nativo Priority: `Urgent`, `High`, `Medium`, `Low` | exatamente um, na triagem |
+| Contrato | label `contract` | quando mexe em contrato consumido por outro repo |
 | Estado | `status:needs-info`, `status:needs-decision`, `status:blocked` | zero ou mais |
 | Verificação | `needs-verification` | resolvida, esperando quem pediu |
 | Entre repos | `xrepo`, `from:<repo>`, `parity` | só com `xrepo.enabled` |
 
-As labels são criadas e migradas por `.standards/labels.sh`, que nunca tira label de issue.
+Tipo e prioridade são definidos por `.standards/issue-types.sh`. As labels são criadas e
+migradas por `.standards/labels.sh`, que só apaga uma label antiga depois que todas as suas
+issues já têm tipo ou Priority.
 
 ## 10. Pedidos entre repositórios
 
