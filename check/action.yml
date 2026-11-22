@@ -1,0 +1,73 @@
+# ============================================================================
+# dev-standards check — the "Auto" rules of CONTRIBUTING.md, as one action
+# ============================================================================
+# A project's standards workflow checks out the pull request (fetch-depth: 0,
+# the head commit) and calls this action at the standard's version tag:
+#
+#   - uses: diego-castilho/dev-standards/check@vX.Y.Z
+#
+# The checks run from this action's copy of .standards/check.sh, so the
+# version in the tag is the version enforced, whatever sits in the project.
+# Checks: .standards.json, branch name and base, PR title, every commit
+# subject (PRs into develop), EN/PT section parity, private addresses in
+# Markdown, and the Actions lockfile.
+# ============================================================================
+name: dev-standards check
+description: Branch, PR title, commit subjects, bilingual docs, sensitive data and the Actions lockfile, on a pull request.
+inputs:
+  github-token:
+    description: Token to read the actions pinned in the lockfile.
+    default: ${{ github.token }}
+runs:
+  using: composite
+  steps:
+    - name: Configuração (.standards.json)
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/../.standards/check.sh" config
+
+    - name: Branch e base
+      shell: bash
+      env:
+        HEAD_REF: ${{ github.head_ref }}
+        BASE_REF: ${{ github.base_ref }}
+      run: bash "$GITHUB_ACTION_PATH/../.standards/check.sh" branch "$HEAD_REF" "$BASE_REF"
+
+    - name: Título do PR
+      shell: bash
+      env:
+        HEAD_REF: ${{ github.head_ref }}
+        BASE_REF: ${{ github.base_ref }}
+        PR_TITLE: ${{ github.event.pull_request.title }}
+      run: bash "$GITHUB_ACTION_PATH/../.standards/check.sh" title "$PR_TITLE" "$HEAD_REF" "$BASE_REF"
+
+    # The release and hotfix PRs carry commits already checked on the way
+    # into develop (or the hotfix branch), plus merges; check only the rest.
+    - name: Commits
+      if: github.base_ref == 'develop'
+      shell: bash
+      env:
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      run: bash "$GITHUB_ACTION_PATH/../.standards/check.sh" commits "$BASE_SHA" "$HEAD_SHA"
+
+    - name: Documentos EN/PT
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/../.standards/check.sh" bilingual
+
+    - name: Dados sensíveis em Markdown
+      shell: bash
+      run: bash "$GITHUB_ACTION_PATH/../.standards/check.sh" docs
+
+    # Every action, transitive ones included, pinned to a commit. Without the
+    # lockfile the step only warns, so a project can adopt it later.
+    - name: Lockfile de Actions
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        if [ ! -f .github/workflows/actions.lock ]; then
+          echo "::warning::Sem .github/workflows/actions.lock: rode 'gh actions-lock' e commite o resultado."
+          exit 0
+        fi
+        gh extension install github/gh-actions-lock --pin v0.5.1
+        gh actions-lock --verify
