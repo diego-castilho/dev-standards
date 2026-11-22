@@ -55,7 +55,7 @@ OWNED=(
   CONTRIBUTING.md CONTRIBUTING.pt-BR.md
   .claude/hooks/guard-bash.sh .claude/hooks/session-start.sh
   .claude/skills/release/SKILL.md .claude/skills/hotfix/SKILL.md .claude/skills/xrepo/SKILL.md
-  .github/workflows/standards.yml .github/pull_request_template.md
+  .github/pull_request_template.md
   .github/ISSUE_TEMPLATE/bug.yml .github/ISSUE_TEMPLATE/feature.yml
   .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/docs.yml
   .github/ISSUE_TEMPLATE/question.yml .github/ISSUE_TEMPLATE/config.yml
@@ -169,9 +169,15 @@ else
   for f in README.md README.pt-BR.md CHANGELOG.md; do
     subst < "$src/.standards/templates/$f" > "$dest/$f"; say "projeto: $f"
   done
-  rm -f "$dest/.standards.json" "$dest/.standards/verify.sh"
+  rm -f "$dest/.standards.json" "$dest/.standards/verify.sh" "$dest/.github/workflows/actions.lock"
+  rm -rf "$dest/check"
   sed -i.bak "s#^\# <Nome do projeto>#\# ${name}#" "$dest/CLAUDE.md" && rm -f "$dest/CLAUDE.md.bak"
 fi
+
+# The standards workflow points at the check action of this version.
+mkdir -p "$dest/.github/workflows"
+subst < "$src/.standards/templates/standards.yml" > "$dest/.github/workflows/standards.yml"
+say "gerado: .github/workflows/standards.yml (dev-standards/check@v${version})"
 
 subst < "$src/.standards/templates/standards.json" | seed .standards.json
 if [ -f "$dest/.standards.json" ]; then
@@ -192,6 +198,8 @@ Próximos passos:
   1. Revise: git -C "$dest" status && git -C "$dest" diff
   2. Ajuste .standards.json: commitScopes, verify, release, production, xrepo.
   3. Leve o que era do projeto dos arquivos *.pre-standards para a seção do projeto e apague-os.
-  4. Commit: chore(standards): adopt dev-standards ${version}
-  5. Com o gh: .standards/issue-types.sh setup, .standards/labels.sh --prune  e  .standards/rulesets.sh
+  4. Lockfile das Actions: gh actions-lock (extensão github/gh-actions-lock), e commite o resultado.
+     Se o repositório restringe as Actions permitidas, libere diego-castilho/dev-standards/check@*.
+  5. Commit: chore(standards): adopt dev-standards ${version}
+  6. Com o gh: .standards/issue-types.sh setup, .standards/labels.sh --prune  e  .standards/rulesets.sh
 EOF
