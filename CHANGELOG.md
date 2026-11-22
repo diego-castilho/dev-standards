@@ -19,6 +19,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - **Mapa visual das regras** em `docs/REGRAS.md`, com diagramas Mermaid que o GitHub desenha: onde vive cada regra, o ciclo de uma mudança, o gitflow com hotfix, branches, commits, PR e merge, release, hotfix, o ciclo de vida de uma issue, os pedidos entre repositórios, o trabalho com agentes e as travas. Cada regra diz como é garantida e aponta para a sua fonte. O instalador leva o mapa aos projetos, com uma seção própria no fim que o sync não altera.
 
 #### Alterado
+- **README genérico.** A abertura do README explica o que o projeto é e o que cobre, sem jargão de quem o criou.
 - **Repositório público, com histórico recomeçado.** O padrão passa a viver num repositório público, e o anterior fica privado e arquivado. O histórico começa num commit de importação para não publicar e-mail pessoal nem nomes de projetos privados; as versões 0.1.0 e 0.2.0 continuam descritas abaixo.
 
 ### 🇺🇸 English
@@ -28,6 +29,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - **Visual map of the rules** in `docs/REGRAS.md`, with Mermaid diagrams GitHub renders: where each rule lives, a change's lifecycle, gitflow with hotfix, branches, commits, PRs and merges, release, hotfix, an issue's lifecycle, cross-repo requests, working with agents and the guards. Each rule says how it is enforced and points to its source. The installer ships the map to projects, with a project section at the end that the sync leaves alone.
 
 #### Changed
+- **A generic README.** The README opening explains what the project is and what it covers, without its author's shorthand.
 - **Public repository, with a fresh history.** The standard now lives in a public repository, and the previous one stays private and archived. History starts at an import commit so that no personal email or private project name is published; versions 0.1.0 and 0.2.0 are still described below.
 
 ## [0.2.0] - 2026-11-22

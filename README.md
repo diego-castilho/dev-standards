@@ -2,10 +2,27 @@
 
 > 🇧🇷 [Versão em português](README.pt-BR.md)
 
-A reusable development standard for projects built with AI agents: gitflow with hotfix,
-Conventional Commits, pull requests, issues and labels, a bilingual CHANGELOG, and the
-guards that keep an agent inside those rules. It grew out of the rules of a
-personal project and is kept generic here.
+A template repository that gives a project a written development process and the
+automation that enforces it, so that people and AI coding agents work by the same rules.
+
+It covers:
+
+- **Branches and releases.** `main` holds what was released and `develop` collects the work
+  in progress. Every change arrives through a short-lived branch and a pull request, and
+  releasing a version or shipping an urgent fix follows a step-by-step procedure.
+- **A readable history.** Commit messages follow Conventional Commits with a scope, pull
+  requests have a title and description format, and the CHANGELOG is kept in English and
+  Portuguese.
+- **Issues.** Forms for bugs, features and tasks, a small set of labels, and a format for
+  asking another repository for a change.
+- **Enforcement.** GitHub rulesets protect `main` and `develop`, and a check on every pull
+  request validates branch names, titles and commit messages. The same check runs locally.
+- **Guardrails for agents.** Claude Code hooks block risky commands, such as pushing to
+  `main`, and ask before others, such as creating a tag, deleting files or touching
+  production. Skills walk the agent through a release and a hotfix.
+
+You adopt it with **Use this template** in a new repository, or with the installer in an
+existing one, and update it later without overwriting what is specific to your project.
 
 ## What is in it
 
