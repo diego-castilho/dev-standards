@@ -1,17 +1,7 @@
 name: Tarefa / Task
-description: Manutenção, documentação, dívida técnica ou decisão pendente / Maintenance, docs, tech debt or a pending decision
+description: Manutenção, CI, dependências, dívida técnica ou decisão pendente / Maintenance, CI, dependencies, tech debt or a pending decision
+type: Task
 body:
-  - type: dropdown
-    id: type
-    attributes:
-      label: Tipo / Type
-      description: Aplique a label correspondente / Apply the matching label
-      options:
-        - "type:chore — manutenção, CI, dependências / maintenance"
-        - "type:docs — documentação / documentation"
-        - "type:question — precisa de resposta / needs an answer"
-    validations:
-      required: true
   - type: textarea
     id: context
     attributes:

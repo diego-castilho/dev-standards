@@ -214,7 +214,7 @@ For a defect **in production** that cannot wait, when `develop` already holds wo
 cannot ship yet. If `develop` can ship as a whole, cut a normal patch release instead.
 Executable runbook: the [`/hotfix`](.claude/skills/hotfix/SKILL.md) skill.
 
-1. **Issue** with `type:bug` and `priority:p0`. **STOP:** confirm it is a hotfix, not a
+1. **Issue** of type `Bug` with Priority `Urgent`. **STOP:** confirm it is a hotfix, not a
    release.
 2. **`hotfix/X.Y.Z` branch** from the **production tag**, not from `develop`:
    `git switch -c hotfix/1.4.1 v1.4.0`. That way nothing in progress comes along.
@@ -248,22 +248,34 @@ users, does not repeat the commit message, and cites the issue (`(#123)`).
 **All pending work becomes an issue**, in the repository where the work happens, never an
 item in a `BACKLOG.md`, a plan or a TODO list. A document may group pending work (a fix plan,
 a roadmap), but each open item points to its issue. Use the
-[templates](.github/ISSUE_TEMPLATE/): bug, feature, task and, across repositories, xrepo
-request. Blank issues are disabled.
+[templates](.github/ISSUE_TEMPLATE/): bug, feature, task, docs, question and, across
+repositories, xrepo request. Each form sets the issue type. Blank issues are disabled.
 
-Labels are the same in every project, created by `.standards/labels.sh`:
+Type and priority are **native GitHub features**, defined once per account or organization
+by `.standards/issue-types.sh setup` from `.standards/issue-types.json`:
+
+| What | Values | Rule |
+|---|---|---|
+| Issue type | `Bug`, `Feature`, `Task`, `Docs`, `Question` | exactly one |
+| Priority field | `Urgent` (blocking or user at risk), `High` (broken, no risk), `Medium` (worthwhile improvement), `Low` (can wait) | exactly one, set at triage |
+
+`gh issue create --type <Type>` sets the type; `gh` has no flag for issue fields, so the
+priority goes through `.standards/issue-types.sh priority <owner/repo> <n> <value>`. Search
+with `type:Bug` and `field.priority:urgent`.
+
+Labels cover what GitHub has no native feature for. They are the same in every project,
+created by `.standards/labels.sh`:
 
 | Group | Labels | Rule |
 |---|---|---|
-| Type | `type:bug`, `type:feature`, `type:docs`, `type:chore`, `type:question`, `type:contract` | exactly one |
-| Priority | `priority:p0` (blocking or user at risk), `priority:p1` (broken, no risk), `priority:p2` (can wait) | exactly one |
+| Contract | `contract` | the change touches a contract another repository consumes |
 | Status | `status:needs-info`, `status:needs-decision`, `status:blocked` | zero or more |
 | Verification | `needs-verification` | resolved, waiting for the requester |
 | Cross-repo | `xrepo`, `from:<repo>`, `parity` | only with `xrepo.enabled` |
 
 An issue's lifecycle:
 
-1. Opened with a type and a priority.
+1. Opened with a type; the priority is set at triage.
 2. A branch with the number (`fix/123-slug`) and a PR with `Refs #123`.
 3. After the merge, a resolution comment and the close:
 
@@ -282,9 +294,9 @@ An issue's lifecycle:
 happens. The executable runbook, with the commands, is the [`/xrepo`](.claude/skills/xrepo/SKILL.md)
 skill:
 
-- the requester opens the issue in the other repo with `xrepo`, `from:<this-repo>`, a type
-  and a priority, passing the labels explicitly to `gh issue create` (template labels only
-  apply on the web);
+- the requester opens the issue in the other repo with a type and the `xrepo` and
+  `from:<this-repo>` labels, passed explicitly to `gh issue create` (template settings only
+  apply on the web), then sets its priority;
 - whoever handles it comments the resolution, adds `needs-verification` and closes;
 - the requester checks it against the acceptance criteria and removes `needs-verification`,
   or reopens saying what is missing. **Only the requester removes `needs-verification`; only

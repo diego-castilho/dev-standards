@@ -20,7 +20,8 @@
 #       hooks already in .claude/settings.json are removed first (use it
 #       when the project had its own guard hooks the standard replaces).
 #
-# Then, with gh logged in: .standards/labels.sh and .standards/rulesets.sh.
+# Then, with gh logged in: .standards/issue-types.sh setup, .standards/labels.sh
+# and .standards/rulesets.sh.
 # ============================================================================
 set -euo pipefail
 
@@ -56,9 +57,10 @@ OWNED=(
   .claude/skills/release/SKILL.md .claude/skills/hotfix/SKILL.md .claude/skills/xrepo/SKILL.md
   .github/workflows/standards.yml .github/pull_request_template.md
   .github/ISSUE_TEMPLATE/bug.yml .github/ISSUE_TEMPLATE/feature.yml
-  .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/config.yml
+  .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/docs.yml
+  .github/ISSUE_TEMPLATE/question.yml .github/ISSUE_TEMPLATE/config.yml
   .standards/VERSION .standards/check.sh .standards/install.sh .standards/labels.sh
-  .standards/labels.json .standards/rulesets.sh .standards/test-guard-bash.sh .standards/test-check.sh
+  .standards/labels.json .standards/issue-types.sh .standards/issue-types.json .standards/rulesets.sh .standards/test-guard-bash.sh .standards/test-check.sh
   .standards/templates/CHANGELOG.md .standards/templates/README.md
   .standards/templates/README.pt-BR.md .standards/templates/standards.json
   docs/adr/0000-template.md docs/REGRAS.md
@@ -191,5 +193,5 @@ Próximos passos:
   2. Ajuste .standards.json: commitScopes, verify, release, production, xrepo.
   3. Leve o que era do projeto dos arquivos *.pre-standards para a seção do projeto e apague-os.
   4. Commit: chore(standards): adopt dev-standards ${version}
-  5. Com o gh: .standards/labels.sh --prune  e  .standards/rulesets.sh
+  5. Com o gh: .standards/issue-types.sh setup, .standards/labels.sh --prune  e  .standards/rulesets.sh
 EOF

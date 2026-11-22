@@ -3,9 +3,11 @@ name: Pedido entre repositórios / Cross-repo request
 about: Pedido de ação vindo de outro repositório do mesmo grupo (xrepo)
 title: ""
 labels: ["xrepo"]
+type: Task
 ---
 
-<!-- Pelo gh, passe as labels explicitamente: --label "xrepo,from:<repo>,type:<tipo>,priority:<p>".
+<!-- Pelo gh, passe tipo e labels explicitamente: --type <Tipo> --label "xrepo,from:<repo>";
+     a prioridade vai depois, com .standards/issue-types.sh priority.
      Nunca inclua token, senha, IP real, dado pessoal ou fixture não higienizado. -->
 
 ## Origem

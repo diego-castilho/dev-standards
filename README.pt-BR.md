@@ -48,6 +48,7 @@ existe, e atualiza depois sem sobrescrever o que é próprio do seu projeto.
    ```bash
    .standards/install.sh --here --name "Meu Projeto"
    git switch -c develop && git push -u origin develop
+   .standards/issue-types.sh setup  # uma vez por conta ou organização
    .standards/labels.sh --prune
    .standards/rulesets.sh          # em repositório privado, exige GitHub Pro
    ```

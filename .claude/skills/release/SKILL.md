@@ -117,7 +117,7 @@ que altere produção. Se a produção não puder ir agora, abra uma issue para 
 ## 7. Repos irmãos
 
 Só com `xrepo.enabled`: para cada repo de `xrepo.repos` que consome algo deste, abra uma
-issue de sync (template xrepo, labels `xrepo,from:<self>,type:contract,priority:p1`) com a
+issue de sync (template xrepo, tipo `Task`, labels `xrepo,from:<self>,contract`, Priority `High`) com a
 tag e o que mudou. **PARE** antes de publicar: o hook pede confirmação.
 
 ## Fim

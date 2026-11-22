@@ -21,7 +21,8 @@ git log --oneline origin/main..origin/develop | head -20   # o que está na deve
 ```
 
 - Se a `develop` pode sair inteira, isto é uma release patch: use a skill `release`.
-- Precisa existir uma issue `type:bug` + `priority:p0`. Se não existir, abra.
+- Precisa existir uma issue do tipo `Bug` com Priority `Urgent`. Se não existir, abra
+  (`gh issue create --type Bug` e `.standards/issue-types.sh priority <repo> <n> Urgent`).
 - **PARE:** mostre a versão em produção, a versão do hotfix (patch + 1) e por que não dá
   para esperar a release. Siga com o "ok".
 

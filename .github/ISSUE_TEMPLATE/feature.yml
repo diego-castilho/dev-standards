@@ -1,6 +1,6 @@
 name: Funcionalidade / Feature
 description: Algo novo ou uma mudança de comportamento / Something new or a behavior change
-labels: ["type:feature"]
+type: Feature
 body:
   - type: textarea
     id: problem
@@ -32,8 +32,10 @@ body:
     id: priority
     attributes:
       label: Prioridade / Priority
+      description: Sugestão; quem mantém o projeto define o campo Priority / A suggestion; the maintainer sets the Priority field
       options:
-        - "p1 — necessário em breve / needed soon"
-        - "p2 — pode esperar / can wait"
+        - "High — necessário em breve / needed soon"
+        - "Medium — melhoria relevante / worthwhile improvement"
+        - "Low — pode esperar / can wait"
     validations:
       required: true
