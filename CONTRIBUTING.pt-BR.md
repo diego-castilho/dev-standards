@@ -319,6 +319,19 @@ roteiro executável, com os comandos, é a skill [`/xrepo`](.claude/skills/xrepo
   links de código para esse commit, usa um prefixo de ID que ainda não existe no repo
   (`git grep -wE '<PREFIXO>[0-9]{2}'` vazio) e cada achado pendente tem issue.
 
+## Dependências
+
+- **As Actions ficam fixadas num lockfile.** O `gh actions-lock` (extensão
+  [github/gh-actions-lock](https://github.com/github/gh-actions-lock)) grava
+  `.github/workflows/actions.lock`, com cada action, inclusive as transitivas, fixada num
+  commit; o runner recusa um pin que não confere. Rode depois de incluir ou mudar um `uses:` e
+  commite o lockfile junto com o workflow. A checagem `standards` confere em todo PR.
+- **O Dependabot abre as atualizações** (`.github/dependabot.yml`, semeado uma vez e depois do
+  projeto): um PR por ecossistema e por semana, minor e patch agrupados, com base na `develop`,
+  com título `chore(deps): …`. Atualização de segurança chega sozinha, assim que sai o alerta.
+  Acrescente um bloco para cada ecossistema que o projeto usa.
+- Atualização de dependência entra como qualquer PR: CI verde, merge commit na `develop`.
+
 ## Dados sensíveis
 
 Nunca entram em commit, doc, issue, PR ou log, **mesmo com o repositório privado**:

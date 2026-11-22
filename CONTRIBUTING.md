@@ -31,7 +31,7 @@ They apply to every change, by any person or agent:
 | Project configuration: scopes, version, gates, production | [.standards.json](.standards.json) | Auto |
 | Executable release, hotfix and cross-repo requests | skills [`/release`](.claude/skills/release/SKILL.md), [`/hotfix`](.claude/skills/hotfix/SKILL.md) and [`/xrepo`](.claude/skills/xrepo/SKILL.md) | Skill |
 | Agent guards | [.claude/settings.json](.claude/settings.json) and [.claude/hooks/](.claude/hooks/) | Confirm + Blocked |
-| Commit, branch and PR checks | the `dev-standards` `standards` workflow | Auto |
+| Commit, branch and PR checks, Actions lockfile | the `dev-standards` `standards` workflow | Auto |
 | Branch protection on GitHub | `.standards/rulesets.sh` | Blocked |
 | All of this as a visual map, with diagrams (not a source: it points here) | [docs/REGRAS.md](docs/REGRAS.md) (PT) | — |
 
@@ -319,6 +319,20 @@ skill:
   subfolder when it has several phases, names in its header the commit it describes, points
   code links to that commit, uses an ID prefix not yet in the repo
   (`git grep -wE '<PREFIX>[0-9]{2}'` empty), and each open finding has an issue.
+
+## Dependencies
+
+- **Actions are pinned in a lockfile.** `gh actions-lock` (the
+  [github/gh-actions-lock](https://github.com/github/gh-actions-lock) extension) writes
+  `.github/workflows/actions.lock`, with every action, transitive ones included, pinned to a
+  commit; the runner refuses a pin that does not match. Run it after adding or changing a
+  `uses:` and commit the lockfile with the workflow. The `standards` check verifies it on every
+  PR.
+- **Dependabot opens the updates** (`.github/dependabot.yml`, seeded once and then the
+  project's): one PR per ecosystem and week, minor and patch grouped, based on `develop`,
+  titled `chore(deps): …`. Security updates arrive on their own, as soon as an advisory is out.
+  Add a block for each ecosystem the project uses.
+- A dependency update is merged like any other PR: CI green, merge commit into `develop`.
 
 ## Sensitive data
 
