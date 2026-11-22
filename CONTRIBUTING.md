@@ -249,7 +249,9 @@ users, does not repeat the commit message, and cites the issue (`(#123)`).
 item in a `BACKLOG.md`, a plan or a TODO list. A document may group pending work (a fix plan,
 a roadmap), but each open item points to its issue. Use the
 [templates](.github/ISSUE_TEMPLATE/): bug, feature, task, docs, question and, across
-repositories, xrepo request. Each form sets the issue type. Blank issues are disabled.
+repositories, xrepo request. Each form sets the issue type. Blank issues are disabled. A
+repository that does not follow the standard gets the same forms, without the xrepo one,
+from the account's public `.github` repository.
 
 Type and priority are **native GitHub features**, defined once per account or organization
 by `.standards/issue-types.sh setup` from `.standards/issue-types.json`:
