@@ -249,7 +249,9 @@ usa, não repete a mensagem do commit, e cita a issue (`(#123)`).
 (um plano de correção, um roadmap), mas cada item aberto aponta para a sua issue. Use os
 [templates](.github/ISSUE_TEMPLATE/): bug, funcionalidade, tarefa, documentação, pergunta
 e, entre repositórios, pedido xrepo. Cada formulário já define o tipo da issue. Issue em
-branco é desligada.
+branco é desligada. Um
+repositório que não segue o padrão recebe os mesmos formulários, sem o de xrepo, do
+repositório público `.github` da conta.
 
 Tipo e prioridade são **recursos nativos do GitHub**, definidos uma vez por conta ou
 organização por `.standards/issue-types.sh setup`, a partir de `.standards/issue-types.json`:
