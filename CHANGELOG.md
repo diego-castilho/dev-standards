@@ -15,6 +15,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### 🇧🇷 Português
 
 #### Adicionado
+- **Lockfile de Actions e Dependabot.** Toda action fica fixada num commit em `.github/workflows/actions.lock` (`gh actions-lock`), conferido pela checagem `standards` em todo PR. O `.github/dependabot.yml` semeado abre um PR por ecossistema e semana, minor e patch agrupados, na `develop`, com título `chore(deps): …`. **Ao atualizar um projeto:** rode `gh actions-lock` e commite o lockfile.
 - **Tipos de issue e campo Priority nativos.** `.standards/issue-types.sh setup` cria ou atualiza na conta (ou organização) os tipos `Bug`, `Feature`, `Task`, `Docs` e `Question` e o campo Priority (`Urgent`, `High`, `Medium`, `Low`), a partir de `.standards/issue-types.json`. `migrate` copia as labels antigas (`type:*`, `priority:*`, `bug`, `enhancement`…) para tipo e Priority sem tirar label nem sobrescrever o que já foi definido; `priority` define a prioridade de uma issue, que o `gh` não faz.
 - **Formulários de documentação e de pergunta**, e todo formulário de issue já define o tipo.
 - **ADR-0001: recursos nativos do GitHub primeiro.** Registra, a partir da leitura da documentação do GitHub e do manual do `gh`, o que o padrão passa a usar de nativo (tipos e campos de issue, dependências, sub-issues, rulesets, releases imutáveis, Projects, milestones, topics, stacked PRs, composite action, lockfile de Actions) e o que continua script, com o motivo. O resumo da leitura fica em `docs/referencias/github-nativo.md`.
@@ -28,6 +29,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### 🇺🇸 English
 
 #### Added
+- **Actions lockfile and Dependabot.** Every action is pinned to a commit in `.github/workflows/actions.lock` (`gh actions-lock`), verified by the `standards` check on every PR. The seeded `.github/dependabot.yml` opens one PR per ecosystem and week, minor and patch grouped, into `develop`, titled `chore(deps): …`. **When updating a project:** run `gh actions-lock` and commit the lockfile.
 - **Native issue types and Priority field.** `.standards/issue-types.sh setup` creates or updates, on the account (or organization), the `Bug`, `Feature`, `Task`, `Docs` and `Question` types and the Priority field (`Urgent`, `High`, `Medium`, `Low`), from `.standards/issue-types.json`. `migrate` copies the old labels (`type:*`, `priority:*`, `bug`, `enhancement`…) into type and Priority without removing labels or overwriting what is already set; `priority` sets an issue's priority, which `gh` cannot do.
 - **Docs and question issue forms**, and every issue form now sets the issue type.
 - **ADR-0001: native GitHub features first.** Records, from a read of GitHub's documentation and the `gh` manual, what the standard now uses natively (issue types and fields, dependencies, sub-issues, rulesets, immutable releases, Projects, milestones, topics, stacked PRs, a composite action, the Actions lockfile) and what stays a script, and why. The reading summary lives in `docs/referencias/github-nativo.md`.
