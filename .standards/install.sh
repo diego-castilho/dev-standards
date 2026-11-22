@@ -67,7 +67,7 @@ OWNED=(
 )
 # Files seeded once, then owned by the project. The xrepo template is the
 # project's because each repository fills in who sends it requests.
-SEEDED=( .github/workflows/ci.yml docs/adr/README.md .github/ISSUE_TEMPLATE/xrepo-request.md )
+SEEDED=( .github/workflows/ci.yml .github/dependabot.yml docs/adr/README.md .github/ISSUE_TEMPLATE/xrepo-request.md )
 
 # Replace every managed block of $2 (target) with the same-named block of $1.
 replace_blocks() { # src target
