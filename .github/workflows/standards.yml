@@ -7,6 +7,8 @@
 # Checks: .standards.json, the branch name and base, the PR title, every
 # commit subject in the PR, that EN/PT document pairs have the same
 # sections, and that no private network address sits in Markdown. The logic is in .standards/check.sh, which runs the same locally.
+# It also verifies .github/workflows/actions.lock, the lockfile that pins every
+# action to a commit (gh actions-lock).
 # ============================================================================
 
 name: Standards
@@ -35,7 +37,7 @@ jobs:
       BASE_SHA: ${{ github.event.pull_request.base.sha }}
       HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.4.0
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
@@ -60,3 +62,16 @@ jobs:
 
       - name: Dados sensíveis em Markdown
         run: bash .standards/check.sh docs
+
+      # Every action, transitive ones included, pinned to a commit. Without the
+      # lockfile the step only warns, so a project can adopt it later.
+      - name: Lockfile de Actions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -f .github/workflows/actions.lock ]; then
+            echo "::warning::Sem .github/workflows/actions.lock: rode 'gh actions-lock' e commite o resultado."
+            exit 0
+          fi
+          gh extension install github/gh-actions-lock --pin v0.5.1
+          gh actions-lock --verify
