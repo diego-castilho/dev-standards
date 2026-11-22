@@ -1,0 +1,45 @@
+{
+  "standardsVersion": "0.2.0",
+  "project": {
+    "name": "dev-standards",
+    "repo": "diego-castilho/dev-standards"
+  },
+  "commitScopes": [
+    "core",
+    "agent",
+    "hooks",
+    "skills",
+    "ci",
+    "templates",
+    "labels",
+    "scripts",
+    "docs",
+    "changelog",
+    "deps",
+    "release"
+  ],
+  "verify": ".standards/verify.sh",
+  "verifyRunsIn": "ci",
+  "release": {
+    "versionFiles": [
+      ".standards/VERSION",
+      ".standards.json"
+    ],
+    "preBumpCommands": [],
+    "gates": []
+  },
+  "production": {
+    "deployDoc": "",
+    "paths": [],
+    "containers": []
+  },
+  "xrepo": {
+    "enabled": false,
+    "self": "dev-standards",
+    "repos": []
+  },
+  "docs": {
+    "auditDir": "docs/audits"
+  },
+  "sensitive": []
+}

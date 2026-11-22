@@ -1,0 +1,15 @@
+[
+  { "name": "type:bug",              "color": "d73a4a", "description": "Defeito a corrigir / Defect to fix" },
+  { "name": "type:feature",          "color": "a2eeef", "description": "Funcionalidade nova / New feature" },
+  { "name": "type:docs",             "color": "0075ca", "description": "Documentação / Documentation" },
+  { "name": "type:chore",            "color": "cfd3d7", "description": "Manutenção, CI, build, dependências / Maintenance" },
+  { "name": "type:question",         "color": "d876e3", "description": "Precisa de resposta, não de código / Needs an answer, not code" },
+  { "name": "type:contract",         "color": "0e8a16", "description": "Mudança ou divergência de contrato / Contract change" },
+  { "name": "priority:p0",           "color": "b60205", "description": "Bloqueante ou risco ao usuário / Blocking or user at risk" },
+  { "name": "priority:p1",           "color": "d93f0b", "description": "Quebrado, sem risco / Broken, no risk" },
+  { "name": "priority:p2",           "color": "c5def5", "description": "Pode esperar / Can wait" },
+  { "name": "status:needs-info",     "color": "e4e669", "description": "Quem trata precisa de resposta de quem pediu / Needs info" },
+  { "name": "status:needs-decision", "color": "fbca04", "description": "Depende de decisão do mantenedor / Needs a decision" },
+  { "name": "status:blocked",        "color": "5c5c5c", "description": "Depende de outra issue / Blocked by another issue" },
+  { "name": "needs-verification",    "color": "c2e0c6", "description": "Resolvida; aguardando quem pediu / Resolved, awaiting the requester" }
+]

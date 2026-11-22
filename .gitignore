@@ -1,0 +1,6 @@
+.DS_Store
+*.pre-standards
+*.before
+.env
+.env.*
+!.env.example
