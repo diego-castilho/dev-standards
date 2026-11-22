@@ -15,20 +15,26 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ### 🇧🇷 Português
 
 #### Adicionado
+- **Tipos de issue e campo Priority nativos.** `.standards/issue-types.sh setup` cria ou atualiza na conta (ou organização) os tipos `Bug`, `Feature`, `Task`, `Docs` e `Question` e o campo Priority (`Urgent`, `High`, `Medium`, `Low`), a partir de `.standards/issue-types.json`. `migrate` copia as labels antigas (`type:*`, `priority:*`, `bug`, `enhancement`…) para tipo e Priority sem tirar label nem sobrescrever o que já foi definido; `priority` define a prioridade de uma issue, que o `gh` não faz.
+- **Formulários de documentação e de pergunta**, e todo formulário de issue já define o tipo.
 - **ADR-0001: recursos nativos do GitHub primeiro.** Registra, a partir da leitura da documentação do GitHub e do manual do `gh`, o que o padrão passa a usar de nativo (tipos e campos de issue, dependências, sub-issues, rulesets, releases imutáveis, Projects, milestones, topics, stacked PRs, composite action, lockfile de Actions) e o que continua script, com o motivo. O resumo da leitura fica em `docs/referencias/github-nativo.md`.
 - **Mapa visual das regras** em `docs/REGRAS.md`, com diagramas Mermaid que o GitHub desenha: onde vive cada regra, o ciclo de uma mudança, o gitflow com hotfix, branches, commits, PR e merge, release, hotfix, o ciclo de vida de uma issue, os pedidos entre repositórios, o trabalho com agentes e as travas. Cada regra diz como é garantida e aponta para a sua fonte. O instalador leva o mapa aos projetos, com uma seção própria no fim que o sync não altera.
 
 #### Alterado
+- **Labels `type:*` e `priority:*` saem do padrão.** `labels.sh --prune` só apaga uma delas quando todas as suas issues já têm tipo ou Priority; `type:contract` vira a label `contract`. As skills `/hotfix`, `/release` e `/xrepo` abrem issue com `--type` e definem a prioridade pelo script. **Ao atualizar um projeto:** rode `issue-types.sh setup` uma vez por conta, `issue-types.sh migrate` em cada repositório e só depois `labels.sh --prune`.
 - **README genérico.** A abertura do README explica o que o projeto é e o que cobre, sem jargão de quem o criou.
 - **Repositório público, com histórico recomeçado.** O padrão passa a viver num repositório público, e o anterior fica privado e arquivado. O histórico começa num commit de importação para não publicar e-mail pessoal nem nomes de projetos privados; as versões 0.1.0 e 0.2.0 continuam descritas abaixo.
 
 ### 🇺🇸 English
 
 #### Added
+- **Native issue types and Priority field.** `.standards/issue-types.sh setup` creates or updates, on the account (or organization), the `Bug`, `Feature`, `Task`, `Docs` and `Question` types and the Priority field (`Urgent`, `High`, `Medium`, `Low`), from `.standards/issue-types.json`. `migrate` copies the old labels (`type:*`, `priority:*`, `bug`, `enhancement`…) into type and Priority without removing labels or overwriting what is already set; `priority` sets an issue's priority, which `gh` cannot do.
+- **Docs and question issue forms**, and every issue form now sets the issue type.
 - **ADR-0001: native GitHub features first.** Records, from a read of GitHub's documentation and the `gh` manual, what the standard now uses natively (issue types and fields, dependencies, sub-issues, rulesets, immutable releases, Projects, milestones, topics, stacked PRs, a composite action, the Actions lockfile) and what stays a script, and why. The reading summary lives in `docs/referencias/github-nativo.md`.
 - **Visual map of the rules** in `docs/REGRAS.md`, with Mermaid diagrams GitHub renders: where each rule lives, a change's lifecycle, gitflow with hotfix, branches, commits, PRs and merges, release, hotfix, an issue's lifecycle, cross-repo requests, working with agents and the guards. Each rule says how it is enforced and points to its source. The installer ships the map to projects, with a project section at the end that the sync leaves alone.
 
 #### Changed
+- **The `type:*` and `priority:*` labels leave the standard.** `labels.sh --prune` deletes one only when all its issues already have a type or a Priority; `type:contract` becomes the `contract` label. The `/hotfix`, `/release` and `/xrepo` skills open issues with `--type` and set the priority through the script. **When updating a project:** run `issue-types.sh setup` once per account, `issue-types.sh migrate` in each repository, and only then `labels.sh --prune`.
 - **A generic README.** The README opening explains what the project is and what it covers, without its author's shorthand.
 - **Public repository, with a fresh history.** The standard now lives in a public repository, and the previous one stays private and archived. History starts at an import commit so that no personal email or private project name is published; versions 0.1.0 and 0.2.0 are still described below.
 
