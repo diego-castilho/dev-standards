@@ -76,6 +76,15 @@ push**. Quando ele voltar, reassine a pilha a partir do topo com
 confira cada commit com `git cat-file -p <sha> | grep -c 'BEGIN SSH SIGNATURE'`. Nada sem
 assinatura chega ao GitHub.
 
+**Todo commit é assinado pela chave do mantenedor.** Nunca contorne uma falha de assinatura
+criando o commit por outro caminho: API do GitHub (`createCommitOnBranch`, endpoints de
+conteúdo), edição pela web ou outra chave. O GitHub marca esses commits como verificados, mas
+a assinatura é dele, não do mantenedor. Se a assinatura ou o SSH falharem com o usuário
+presente, pare, diga o erro e peça que ele aprove ou destrave o gerenciador de chaves; um
+`ssh -T git@github.com` dispara um novo pedido. Exceção: commits de automação (bots em
+workflows), que não têm chave do mantenedor e devem sair pela API justamente para serem
+assinados.
+
 <!-- standards:end -->
 
 ## Específico deste projeto
