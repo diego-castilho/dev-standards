@@ -29,7 +29,7 @@ They apply to every change, by any person or agent:
 | Process: branch, commit, PR, merge, release, hotfix, issues | this file | Doc + Auto |
 | What is agent-specific: session start, stops, worktrees | [CLAUDE.md](CLAUDE.md) | Doc + Confirm |
 | Project configuration: scopes, version, gates, production | [.standards.json](.standards.json) | Auto |
-| Executable release, hotfix and cross-repo requests | skills [`/release`](.claude/skills/release/SKILL.md), [`/hotfix`](.claude/skills/hotfix/SKILL.md) and [`/xrepo`](.claude/skills/xrepo/SKILL.md) | Skill |
+| Executable release, hotfix and cross-repo requests | skills [`/release`](.claude/skills/release/SKILL.md), [`/hotfix`](.claude/skills/hotfix/SKILL.md) and [`/xrepo`](.claude/skills/xrepo/SKILL.md), installed with `gh skill` at the standard's version | Skill |
 | Agent guards | [.claude/settings.json](.claude/settings.json) and [.claude/hooks/](.claude/hooks/) | Confirm + Blocked |
 | Commit, branch and PR checks, Actions lockfile | the `dev-standards` `standards` workflow | Auto |
 | Branch protection on GitHub | `.standards/rulesets.sh` | Blocked |
