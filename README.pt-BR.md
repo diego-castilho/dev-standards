@@ -83,7 +83,8 @@ são substituídos; no Markdown, só os blocos gerenciados mudam:
 …o seu, nunca alterado…
 ```
 
-Abra o resultado como `chore(standards): sync to vX.Y.Z`.
+As skills `/release`, `/hotfix` e `/xrepo` são instaladas com `gh skill`, fixadas na mesma tag;
+`gh skill list` mostra de onde cada uma veio. Abra o resultado como `chore(standards): sync to vX.Y.Z`.
 
 ## Versionamento
 
