@@ -18,7 +18,12 @@ que fazer, em que ordem, quando parar e o que a automação garante.
 | **Skill** | Roteiro executável (`/release`, `/hotfix`, `/xrepo`) |
 | **Auto** | O CI ou o GitHub fazem sozinhos |
 | **Confirma** | Um hook pede a confirmação do mantenedor antes de seguir |
-| **Bloqueado** | Um hook recusa sempre |
+| **Bloqueado** | Um hook ou o GitHub (ruleset) recusa sempre |
+
+> **Rulesets e repositório privado.** As travas marcadas "GitHub" valem em repositório
+> público em qualquer plano e, em repositório privado, exigem GitHub Pro. Com o Pro ativo,
+> `rulesets.sh` as aplica a todos os repositórios do padrão; os hooks continuam como segunda
+> barreira para o agente.
 
 ## Sumário
 
@@ -30,17 +35,20 @@ que fazer, em que ordem, quando parar e o que a automação garante.
 6. [Pull requests e merge](#6-pull-requests-e-merge)
 7. [Release](#7-release)
 8. [Hotfix](#8-hotfix)
-9. [Issues e labels](#9-issues-e-labels)
+9. [Issues, tipos e Projects](#9-issues-tipos-e-projects)
 10. [Pedidos entre repositórios](#10-pedidos-entre-repositórios)
 11. [Trabalho com agentes](#11-trabalho-com-agentes)
 12. [Travas automáticas](#12-travas-automáticas)
-13. [Dados sensíveis e idiomas](#13-dados-sensíveis-e-idiomas)
+13. [Dependências e Actions](#13-dependências-e-actions)
+14. [Dados sensíveis e idiomas](#14-dados-sensíveis-e-idiomas)
 
 ---
 
 ## 1. Onde vive cada regra
 
-Cada regra tem **uma fonte só**. Os outros lugares apontam para ela.
+Cada regra tem **uma fonte só**. Os outros lugares apontam para ela. A regra fica no recurso
+nativo do GitHub sempre que ele existe; script só onde o GitHub não chega
+([ADR-0001](adr/0001-recursos-nativos-do-github-primeiro.md)).
 
 ```mermaid
 flowchart LR
@@ -50,16 +58,17 @@ flowchart LR
     J[".standards.json<br/>a configuração do projeto"]
   end
   subgraph Executavel["Executável"]
-    S["skills<br/>/release · /hotfix · /xrepo"]
+    S["skills via gh skill<br/>/release · /hotfix · /xrepo"]
   end
   subgraph Trava["Trava"]
     H["hooks<br/>.claude/hooks/"]
-    W["CI<br/>standards.yml · ci.yml"]
-    G["GitHub<br/>rulesets · branch apagada no merge"]
+    W["CI<br/>action dev-standards/check · ci.yml"]
+    G["GitHub<br/>rulesets · tipos de issue · Projects"]
   end
   M["Ambiente da máquina<br/>~/.claude/CLAUDE.md"]
   C --> S
   C --> W
+  C --> G
   A --> H
   J --> H
   J --> W
@@ -68,10 +77,14 @@ flowchart LR
 
 | Assunto | Fonte | Garantia |
 |---|---|---|
-| Processo: branch, commit, PR, merge, release, hotfix, issues | [CONTRIBUTING.pt-BR.md](../CONTRIBUTING.pt-BR.md) | Doc + Auto |
-| Início de sessão, paradas, worktrees | [CLAUDE.md](../CLAUDE.md) | Doc + Confirma |
+| Processo: branch, commit, PR, merge, release, hotfix, issues, dependências | [CONTRIBUTING.pt-BR.md](../CONTRIBUTING.pt-BR.md) | Doc + Auto |
+| Início de sessão, paradas, worktrees, assinatura | [CLAUDE.md](../CLAUDE.md) | Doc + Confirma |
 | Escopos, `verify`, versão, gates, produção, repos irmãos | [.standards.json](../.standards.json) | Auto |
-| Release, hotfix e pedidos entre repos | [.claude/skills/](../.claude/skills/) | Skill |
+| Release, hotfix e pedidos entre repos | skills em `.claude/skills/`, instaladas com `gh skill` na versão do padrão | Skill |
+| Checagens de todo PR | action `diego-castilho/dev-standards/check@vX.Y.Z` | Auto |
+| Tipos de issue e campo Priority | `.standards/issue-types.json` e `.sh`, na conta | Auto |
+| Proteção de `main` e `develop` | `.standards/rulesets.sh` | Bloqueado |
+| Por que é nativo ou script | [ADR-0001](adr/0001-recursos-nativos-do-github-primeiro.md) | Doc |
 | Ambiente de uma máquina (caminhos, 1Password, node em container) | `~/.claude/CLAUDE.md` da máquina | Doc |
 
 **Memória local de agente não é lugar de regra**: ela só existe numa máquina. Regra nova ou
@@ -81,17 +94,18 @@ corrigida entra no documento, no mesmo PR que a motivou.
 
 ```mermaid
 flowchart TD
-  I["Issue<br/>tipo + prioridade"] --> B["Branch curta a partir da develop<br/>fix/123-slug"]
+  I["Issue com tipo<br/>entra no Project em Triagem"] --> T["Triagem: Priority definida<br/>vai para Backlog"]
+  T --> B["Branch curta a partir da develop<br/>fix/123-slug"]
   B --> K1["commit 1 · spec<br/>docs: contrato, modelo, ADR"]
   K1 --> K2["commit 2 · implementação<br/>código + teste que falha sem ela"]
   K2 --> K3["commit 3 · changelog<br/>[Unreleased] em PT e EN"]
   K3 --> V{"verify local passa?"}
   V -- não --> K2
-  V -- sim --> P["PR para a develop<br/>título no formato de commit · Refs #123"]
-  P --> CI{"CI verde?<br/>standards + verify"}
+  V -- sim --> P["PR para a develop<br/>título no formato de commit · Refs #123<br/>issue vai para Em revisão"]
+  P --> CI{"CI verde?<br/>check + verify"}
   CI -- não --> K2
-  CI -- sim --> MG["Merge commit na develop<br/>branch apagada no merge"]
-  MG --> R["Comentário de resolução<br/>e issue fechada"]
+  CI -- sim --> MG["Merge commit na develop<br/>título do PR · branch apagada"]
+  MG --> R["Comentário de resolução<br/>e issue fechada · Concluído"]
   R --> REL["Sai na próxima release"]
 ```
 
@@ -112,12 +126,12 @@ gitGraph
   commit id: "feat(auth): login"
   commit id: "docs(changelog)"
   checkout develop
-  merge feat-12-login id: "merge PR #20"
+  merge feat-12-login id: "feat(auth): login (#20)"
   branch chore-bump-1.4.0
   checkout chore-bump-1.4.0
   commit id: "chore(release): 1.4.0"
   checkout develop
-  merge chore-bump-1.4.0 id: "merge PR #21"
+  merge chore-bump-1.4.0 id: "chore(release): 1.4.0 (#21)"
   checkout main
   commit id: "release: v1.4.0 (squash)" tag: "v1.4.0"
   checkout develop
@@ -137,9 +151,9 @@ gitGraph
 
 | Regra | Garantia |
 |---|---|
-| Nunca push direto na `main` | Bloqueado |
-| Nunca force-push na `develop` | Bloqueado |
-| Merge de PR com base `main` só se for `release: vX.Y.Z` ou `hotfix: vX.Y.Z` | Bloqueado (os outros) · Confirma (esses) |
+| Nunca push direto na `main`; ela só muda por PR | Bloqueado (GitHub e hook) |
+| Nunca force-push nem apagar a `main` ou a `develop` | Bloqueado (GitHub e hook) |
+| Merge de PR com base `main` só se for `release: vX.Y.Z` ou `hotfix: vX.Y.Z` | Bloqueado (os outros, hook) · Confirma (esses) |
 | `develop` "N commits à frente" da `main` é esperado: só a `main` é compactada | Doc |
 
 ## 4. Branches
@@ -161,6 +175,7 @@ flowchart LR
 | `chore/bump-X.Y.Z` | `chore/bump-1.4.0` | `develop` → `develop` |
 | `hotfix/X.Y.Z` | `hotfix/1.4.1` | tag em produção → `main` |
 | `claude/…` (criada pelo Claude Code na nuvem) | `claude/fix-login-a1b2` | `develop` → `develop` |
+| `dependabot/…` (atualização de dependência) | `dependabot/github_actions/…` | `develop` → `develop` |
 
 Letras minúsculas, sem acento. O CI recusa o que estiver fora disto (**Auto**). A branch é
 apagada no merge (**Auto**, GitHub).
@@ -199,24 +214,35 @@ flowchart LR
 
 | Regra | Garantia |
 |---|---|
-| Formato, tipo, escopo, tamanho, ponto final | Auto (`check.sh`) |
+| Formato, tipo, escopo, tamanho, ponto final | Auto (action `check`) |
 | Corpo explica o problema | Doc |
-| Commits, merges e tags assinados (SSH; o GitHub assina os dele em PGP) | Doc · Bloqueado com rulesets (GitHub Pro) |
+| Commits, merges e tags assinados pela chave do mantenedor (SSH) | Bloqueado na `main` e na `develop` (GitHub) |
+| Assinatura falhou: nunca contornar pela API, pela web ou com outra chave | Doc (CLAUDE.md) |
+| Só automação em workflow (bot) commita pela API, para sair assinada pelo GitHub | Doc |
 
 ## 6. Pull requests e merge
 
 ```mermaid
 flowchart TD
   PR["PR aberto"] --> BASE{"base?"}
-  BASE -- develop --> T1{"título no formato de commit?<br/>branch no formato?<br/>commits no formato?"}
+  BASE -- develop --> T1{"título no formato de commit?<br/>branch no formato?<br/>commits no formato?<br/>lockfile de Actions confere?"}
   T1 -- não --> X["CI recusa"]
   T1 -- sim --> V{"verify verde?"}
-  V -- sim --> MC["merge commit<br/>gh pr merge N --merge --delete-branch"]
+  V -- sim --> MC["merge commit<br/>gh pr merge N --merge --delete-branch<br/>título e descrição do PR"]
   BASE -- main --> T2{"release: vX.Y.Z vindo da develop<br/>ou hotfix: vX.Y.Z vindo de hotfix/X.Y.Z?"}
   T2 -- não --> RT["hook bloqueia<br/>mude a base para develop"]
   T2 -- sim --> PARE["PARE · confirmação do mantenedor"]
   PARE --> SQ["squash<br/>gh pr merge N --squash --subject ..."]
 ```
+
+| Destino | Método | Comando |
+|---|---|---|
+| branch curta → `develop` | merge commit | `gh pr merge N --merge --delete-branch` |
+| release `develop` → `main` | squash | `gh pr merge N --squash --subject "release: vX.Y.Z" --body "<uma linha>"` |
+| hotfix → `main` | squash | `gh pr merge N --squash --subject "hotfix: vX.Y.Z" --body "<uma linha>"` |
+
+Na `develop` não há `--subject`: o repositório é configurado (`rulesets.sh`) para o merge
+commit levar o título e a descrição do PR. Rebase merge fica desligado (**Auto**).
 
 **Checklist de todo PR para a `develop`:** teste cobrindo a mudança (numa correção, um teste
 que falha sem ela), documentação no mesmo PR, CHANGELOG em `[Unreleased]` em PT e EN, nada de
@@ -239,7 +265,7 @@ flowchart TD
   D --> E["3 · PR develop → main<br/>release: vX.Y.Z · corpo PT/EN + Verificação"]
   E --> F["PARE · squash na main"]
   F --> G["4 · tag anotada e assinada vX.Y.Z<br/>Confirma"]
-  G --> H["5 · GitHub Release --latest<br/>Confirma"]
+  G --> H["5 · GitHub Release --latest<br/>imutável depois de publicada · Confirma"]
   H --> I["6 · main de volta na develop<br/>merge assinado"]
   I --> J{"produção?"}
   J -- sim --> K["PARE · deploy pelo deployDoc"]
@@ -251,7 +277,8 @@ flowchart TD
 ```
 
 **SemVer:** correção → patch; funcionalidade retrocompatível → minor; quebra de contrato ou de
-formato de dado → major (antes da 1.0.0, a quebra sobe o minor).
+formato de dado → major (antes da 1.0.0, a quebra sobe o minor). A release publicada é
+**imutável**: tag e arquivos não mudam depois (**Auto**, GitHub).
 
 ## 8. Hotfix
 
@@ -275,22 +302,25 @@ flowchart TD
 No CHANGELOG da `develop`, depois do merge de volta, a seção `[X.Y.Z]` do hotfix fica
 **abaixo** do `[Unreleased]`, que continua com o que já estava lá.
 
-## 9. Issues e labels
+## 9. Issues, tipos e Projects
 
 **Toda pendência vira issue**, nunca item de `BACKLOG.md`, de um plano ou de uma lista de
-TODO. Um documento pode agrupar pendências, mas cada item aberto aponta para a sua issue.
+TODO. Um documento pode agrupar pendências, mas cada item aberto aponta para a sua issue. Os
+formulários já definem o tipo; repositório fora do padrão recebe os mesmos formulários do
+repositório público `.github` da conta.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Aberta: tipo + prioridade
-  Aberta --> EmTrabalho: branch fix/N-slug
-  Aberta --> Esperando: status:needs-info / needs-decision / blocked
-  Esperando --> Aberta: resposta ou decisão
-  EmTrabalho --> Mergeada: PR com Refs #N, merge na develop
-  Mergeada --> Fechada: comentário de resolução
-  Aberta --> NaoPlanejada: motivo comentado
+  [*] --> Triagem: aberta com tipo
+  Triagem --> Backlog: Priority definida
+  Backlog --> EmAndamento: branch fix/N-slug
+  Backlog --> Esperando: status:needs-info / needs-decision / blocked
+  Esperando --> Backlog: resposta ou decisão
+  EmAndamento --> EmRevisao: PR com Refs #N
+  EmRevisao --> Concluido: merge, comentário de resolução e issue fechada
+  Backlog --> NaoPlanejada: motivo comentado
   NaoPlanejada --> [*]
-  Fechada --> [*]
+  Concluido --> [*]: arquivada depois de 14 dias
 ```
 
 | O quê | Onde | Regra |
@@ -302,9 +332,26 @@ stateDiagram-v2
 | Verificação | `needs-verification` | resolvida, esperando quem pediu |
 | Entre repos | `xrepo`, `from:<repo>`, `parity` | só com `xrepo.enabled` |
 
-Tipo e prioridade são definidos por `.standards/issue-types.sh`. As labels são criadas e
-migradas por `.standards/labels.sh`, que só apaga uma label antiga depois que todas as suas
-issues já têm tipo ou Priority.
+`gh issue create --type <Tipo>` define o tipo; a prioridade vai por
+`.standards/issue-types.sh priority`, porque o `gh` não tem opção para campo de issue. As
+labels são criadas e migradas por `.standards/labels.sh`, que só apaga uma label antiga
+depois que todas as suas issues já têm tipo ou Priority.
+
+**Projects, um por produto** ([ADR-0001](adr/0001-recursos-nativos-do-github-primeiro.md)):
+produto com dois repositórios (web e app) tem um Project só. As colunas são as do diagrama
+acima, e o GitHub move os itens sozinho (**Auto**):
+
+| Evento | Coluna |
+|---|---|
+| Issue ou PR aberto no repositório | Triagem |
+| PR ligado à issue | Em revisão |
+| Item fechado ou PR mergeado | Concluído |
+| Item reaberto | Backlog |
+| 14 dias em Concluído | arquivado |
+
+Mudar Priority e mover para Backlog ou Em andamento é manual. Arrastar para Concluído **não**
+fecha a issue: quem fecha deixa antes o comentário de resolução. As visões fixas são Quadro,
+Triagem, Por prioridade, Pedidos entre repos e Aguardando verificação.
 
 ## 10. Pedidos entre repositórios
 
@@ -315,7 +362,7 @@ Roteiro executável: skill `/xrepo`.
 sequenceDiagram
   participant A as Repo que pede
   participant B as Repo que trata
-  A->>B: issue xrepo, from:A, tipo e prioridade (Confirma)
+  A->>B: issue com --type, labels xrepo e from:A, e Priority (Confirma)
   Note over B: confere contra o código<br/>se não bate: status:needs-info
   B->>B: branch, PR com Refs #N, merge na develop
   B->>B: comentário de resolução, needs-verification, fecha
@@ -329,7 +376,8 @@ sequenceDiagram
 
 **Quem pediu é o único que remove `needs-verification`. Quem tratou é o único que fecha.**
 Conhecimento permanente (contrato, decisões) vive em documento versionado; a issue aponta
-para ele. Repos nunca escrevem arquivo um no outro.
+para ele. Repos nunca escrevem arquivo um no outro. No Project, a visão **Pedidos entre
+repos** reúne os `xrepo`, e **Aguardando verificação** mostra o que falta conferir.
 
 ## 11. Trabalho com agentes
 
@@ -345,13 +393,16 @@ flowchart TD
   RD --> T["trabalha"]
   T --> STOP{"release, produção, apagar<br/>ou publicar fora do repo?"}
   STOP -- sim --> P["PARE · confirmação explícita<br/>vale só para aquela ação"]
-  STOP -- não --> T
+  STOP -- não --> SIG{"assinatura ou SSH falhou?"}
+  SIG -- não --> T
+  SIG -- "sim, usuário presente" --> AP["PARE · mostra o erro<br/>pede aprovação no gerenciador de chaves"]
+  SIG -- "sim, usuário ausente" --> LOC["commita sem assinar, sem push<br/>reassina a pilha quando ele voltar"]
 ```
 
 - **Autorização vale para aquela ação, naquele momento.** Não se generaliza.
-- **Hook ou classificador bloqueou:** não contorne; explique o que ia fazer e espere.
-- **Assinatura falhou com o usuário ausente:** commite sem assinar, **não faça push**, e
-  reassine a pilha quando ele voltar.
+- **Hook, classificador ou ruleset bloqueou:** não contorne; explique o que ia fazer e espere.
+- **Assinatura nunca é contornada:** nada de commit pela API, pela web ou com outra chave.
+  Com o usuário presente, `ssh -T git@github.com` dispara um novo pedido de aprovação.
 
 ## 12. Travas automáticas
 
@@ -361,22 +412,50 @@ flowchart LR
   HK -- "push na main · force-push na develop<br/>merge de PR para a main que não é release/hotfix" --> NO["Bloqueado"]
   HK -- "tag · GitHub Release · squash na main<br/>produção · rm fora do /tmp · drop no banco<br/>escrita em repo irmão" --> ASK["Confirma"]
   HK -- "o resto" --> OK["segue"]
+  PUSH["push de qualquer pessoa ou agente"] --> RS{"ruleset do GitHub"}
+  RS -- "main sem PR · force-push · deleção<br/>commit sem assinatura" --> NO
+  RS -- "o resto" --> OK
 ```
 
 | Onde | O que garante |
 |---|---|
 | `.claude/hooks/guard-bash.sh` | as paradas acima, com caminhos e containers de produção do `.standards.json` |
 | `.claude/hooks/session-start.sh` | o estado do checkout, issues e PRs no início de cada conversa |
-| `standards.yml` (CI) | branch, título, commits, paridade EN/PT, IP privado em Markdown |
+| action `dev-standards/check` (CI) | branch, título, commits, paridade EN/PT, IP privado em Markdown, lockfile de Actions |
 | `ci.yml` (CI) | o `verify` do projeto (ou aviso, com `verifyRunsIn: "local"`) |
-| `rulesets.sh` (GitHub Pro) | `main` só por PR, sem force-push nem deleção, commits assinados |
+| `rulesets.sh` (GitHub) | `main` só por PR; `main` e `develop` sem force-push, sem deleção e com commits assinados; títulos de merge e squash vindos do PR; rebase desligado |
+| Releases imutáveis (GitHub) | tag e arquivos de uma release publicada não mudam |
 
-## 13. Dados sensíveis e idiomas
+O ruleset vale para qualquer pessoa ou agente, inclusive fora do Claude Code; o hook trava o
+agente antes de o comando chegar ao GitHub e cobre o que o ruleset não alcança (produção,
+banco, remoções, repos irmãos).
+
+## 13. Dependências e Actions
+
+```mermaid
+flowchart LR
+  DB["Dependabot<br/>semanal · minor e patch agrupados"] --> PRD["PR chore(deps): … para a develop"]
+  PRD --> CK{"check + verify<br/>lockfile confere?"}
+  CK -- sim --> MD["merge commit, como qualquer PR"]
+  CK -- não --> FX["gh actions-lock<br/>e commit do lockfile"]
+  FX --> CK
+  SEC["alerta de segurança"] --> PRS["PR de segurança na hora"] --> CK
+```
+
+| Regra | Fonte | Garantia |
+|---|---|---|
+| Toda action, inclusive as transitivas, fixada num commit em `.github/workflows/actions.lock` (`gh actions-lock`) | CONTRIBUTING, "Dependências" | Auto (check e runner) |
+| Atualização pelo Dependabot (`.github/dependabot.yml`, semeado uma vez, depois do projeto) | CONTRIBUTING, "Dependências" | Auto |
+| As checagens chegam pela action `check` na tag da versão; o sync só troca a tag | CONTRIBUTING, "Dependências" | Auto |
+| Actions restritas às do GitHub, verificadas e a lista liberada; action nova precisa ser liberada antes | configuração do repositório | Bloqueado (GitHub) |
+
+## 14. Dados sensíveis e idiomas
 
 **Nunca** em commit, doc, issue, PR ou log, mesmo com o repositório privado: token, senha,
 chave, `.env`, URL com credencial; dado pessoal ou de cliente real (a lista `sensitive` do
 `.standards.json`); IP real ou topologia interna (use `192.0.2.x` em documento); fixture não
-higienizado.
+higienizado. Em repositório público, a detecção de segredos com proteção de push recusa o
+push (**Auto**, GitHub), e o e-mail dos commits é o noreply do GitHub.
 
 | O quê | Idioma |
 |---|---|
