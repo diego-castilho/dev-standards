@@ -54,7 +54,6 @@ subst() { sed -e "s#__PROJECT_NAME__#${name}#g" -e "s#__PROJECT_REPO__#${repo}#g
 OWNED=(
   CONTRIBUTING.md CONTRIBUTING.pt-BR.md
   .claude/hooks/guard-bash.sh .claude/hooks/session-start.sh
-  .claude/skills/release/SKILL.md .claude/skills/hotfix/SKILL.md .claude/skills/xrepo/SKILL.md
   .github/pull_request_template.md
   .github/ISSUE_TEMPLATE/bug.yml .github/ISSUE_TEMPLATE/feature.yml
   .github/ISSUE_TEMPLATE/task.yml .github/ISSUE_TEMPLATE/docs.yml
@@ -157,10 +156,30 @@ merge_settings() {
   say "mesclado: .claude/settings.json (hooks do padrão acrescentados, o resto mantido)"
 }
 
+# Skills arrive through gh skill, pinned to this version's tag, so that
+# `gh skill update` and `gh skill list` know where they came from. Without gh
+# skill, or before the tag exists, they are copied as before.
+SKILLS=(release hotfix xrepo)
+standards_repo="$(jq -r '.project.repo // "diego-castilho/dev-standards"' "$src/.standards.json" 2>/dev/null || echo diego-castilho/dev-standards)"
+install_skills() {
+  local s
+  for s in "${SKILLS[@]}"; do
+    if command -v gh >/dev/null 2>&1 && gh skill --help >/dev/null 2>&1 &&
+       (cd "$dest" && gh skill install "$standards_repo" ".claude/skills/$s/SKILL.md" --pin "v${version}" \
+          --agent claude-code --scope project --allow-hidden-dirs --force >/dev/null 2>&1); then
+      say "skill: $s (gh skill, v${version})"
+    else
+      copy_owned ".claude/skills/$s/SKILL.md"
+      say "skill: $s copiada (gh skill indisponível ou tag v${version} ainda não publicada)"
+    fi
+  done
+}
+
 echo "dev-standards ${version} → ${dest} (${name}${repo:+, ${repo}})"
 
 if [ "$mode" = into ]; then
   for f in "${OWNED[@]}"; do copy_owned "$f"; done
+  install_skills
   for f in "${SEEDED[@]}"; do seed "$f" < "$src/$f"; done
   merge_claude_md
   merge_settings
@@ -171,6 +190,7 @@ else
   done
   rm -f "$dest/.standards.json" "$dest/.standards/verify.sh" "$dest/.github/workflows/actions.lock"
   rm -rf "$dest/check"
+  install_skills
   sed -i.bak "s#^\# <Nome do projeto>#\# ${name}#" "$dest/CLAUDE.md" && rm -f "$dest/CLAUDE.md.bak"
 fi
 
