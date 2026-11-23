@@ -79,16 +79,21 @@ que `git branch -r --no-merged origin/develop` não a lista.
 
 ### PRs empilhados
 
-Um PR cuja base é a branch de outro PR pede cuidado:
+Quando uma mudança é grande demais para um PR, divida-a numa pilha de PRs que se apoiam uns
+nos outros e cuide dela com o **`gh stack`** (extensão
+[github/gh-stack](https://github.com/github/gh-stack)), que o GitHub reconhece como pilha:
 
-- o CI só roda em PR com base `develop` ou `main`, e mudar a base de um PR aberto não o
-  dispara;
-- apagar a branch de base no merge pode **fechar** o PR dependente em vez de redirecioná-lo.
+1. `gh stack init` a partir da `develop` e `gh stack add <branch>` para cada camada; cada
+   branch segue as regras de nome.
+2. `gh stack submit` envia todas as branches e abre os PRs. As regras e o CI de cada PR são
+   avaliados contra a `develop`, o tronco da pilha.
+3. Revise e faça o merge **de baixo para cima** com `gh stack merge --merge`. A extensão
+   aponta os PRs de cima para a nova base e faz o rebase, e os commits rebaseados saem
+   assinados.
+4. `gh stack sync` atualiza a pilha local depois de qualquer mudança no GitHub.
 
-Antes de mergear o PR de baixo, mude a base de cada dependente para `develop`
-(`gh pr edit N --base develop`) e feche e reabra cada um para o CI rodar. Se um dependente
-fechar, recrie a branch de base no mesmo commit (`git push origin <sha>:refs/heads/<branch>`),
-reabra o PR, mude a base e apague a branch de novo.
+Nunca mude à mão a base de um PR da pilha nem apague você mesmo uma branch dela: as duas
+coisas deixam a pilha do GitHub fora de sincronia com as branches.
 
 ## Commits
 
