@@ -170,11 +170,13 @@ to merge a `main`-based PR that is neither a release nor a hotfix (Blocked).
 
 | PR | Method | Command |
 |---|---|---|
-| short branch → `develop` | merge commit | `gh pr merge N --merge --delete-branch --subject "Merge pull request #N from <owner>/<branch>"` |
+| short branch → `develop` | merge commit | `gh pr merge N --merge --delete-branch` |
 | release `develop` → `main` | squash | `gh pr merge N --squash --subject "release: vX.Y.Z" --body "<one line>"` |
 | hotfix → `main` | squash | `gh pr merge N --squash --subject "hotfix: vX.Y.Z" --body "<one line>"` |
 
-Without `--subject`, `main` gets "title (#N)".
+Without `--subject`, `main` gets "title (#N)". Into `develop` there is no `--subject`: the
+repository is set (`rulesets.sh`) so that the merge commit takes the PR title and body, which
+reads better in `git log` than "Merge pull request #N from …".
 
 The **default branch on GitHub is `develop`** (`rulesets.sh` sets it): new PRs, Dependabot's
 included, start with the right base. A PR that arrives based on `main` without being a
