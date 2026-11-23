@@ -172,11 +172,13 @@ merge de PR com base `main` que não seja de release ou de hotfix (Bloqueado).
 
 | PR | Método | Comando |
 |---|---|---|
-| branch curta → `develop` | merge commit | `gh pr merge N --merge --delete-branch --subject "Merge pull request #N from <owner>/<branch>"` |
+| branch curta → `develop` | merge commit | `gh pr merge N --merge --delete-branch` |
 | release `develop` → `main` | squash | `gh pr merge N --squash --subject "release: vX.Y.Z" --body "<uma linha>"` |
 | hotfix → `main` | squash | `gh pr merge N --squash --subject "hotfix: vX.Y.Z" --body "<uma linha>"` |
 
-Sem `--subject`, a `main` fica com "título (#N)".
+Sem `--subject`, a `main` fica com "título (#N)". Na `develop` não há `--subject`: o
+repositório é configurado (`rulesets.sh`) para o merge commit levar o título e a descrição do
+PR, que se leem melhor no `git log` que "Merge pull request #N from …".
 
 A **branch padrão no GitHub é a `develop`** (`rulesets.sh` configura): PRs novos, inclusive os
 do Dependabot, já nascem com a base certa. Um PR que chegar com base `main` sem ser de
