@@ -224,8 +224,8 @@ dado sensível, ADR para decisão difícil de reverter.
 
 Use `Refs #N`, não `Fixes #N`: fechar uma issue pede o comentário de resolução.
 
-**PRs empilhados:** antes de mergear o de baixo, mude a base dos dependentes para a `develop`
-e feche e reabra cada um para o CI rodar.
+**PRs empilhados:** com `gh stack` (`init`, `add`, `submit`), merge de baixo para cima com
+`gh stack merge --merge`. Nunca trocar base nem apagar branch da pilha à mão.
 
 ## 7. Release
 

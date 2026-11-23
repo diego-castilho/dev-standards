@@ -78,16 +78,20 @@ check that `git branch -r --no-merged origin/develop` does not list it.
 
 ### Stacked PRs
 
-A PR whose base is another PR's branch needs care:
+When a change is too big for one PR, split it into a stack of PRs that build on each other
+and manage it with **`gh stack`** (the [github/gh-stack](https://github.com/github/gh-stack)
+extension), which GitHub knows as a stack:
 
-- CI only runs on PRs based on `develop` or `main`, and changing an open PR's base does not
-  trigger it;
-- deleting the base branch on merge can **close** the dependent PR instead of retargeting it.
+1. `gh stack init` from `develop`, then `gh stack add <branch>` for each layer; each branch
+   follows the branch-name rules.
+2. `gh stack submit` pushes every branch and opens the PRs. Each PR's rules and CI are
+   evaluated against `develop`, the stack's trunk.
+3. Review and merge **from the bottom up** with `gh stack merge --merge`. The extension
+   retargets the PRs above and rebases them, and the rebased commits are signed.
+4. `gh stack sync` brings the local stack up to date after any change on GitHub.
 
-Before merging the lower PR, change each dependent's base to `develop`
-(`gh pr edit N --base develop`) and close and reopen each one so CI runs. If a dependent
-closes, recreate the base branch on the same commit (`git push origin <sha>:refs/heads/<branch>`),
-reopen the PR, change its base and delete the branch again.
+Never change the base of a PR in a stack by hand, and never delete a stack branch yourself:
+both leave GitHub's stack out of step with the branches.
 
 ## Commits
 
