@@ -12,6 +12,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-27
+
 ### 🇧🇷 Português
 
 #### Corrigido
