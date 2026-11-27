@@ -41,7 +41,9 @@ existing one, and update it later without overwriting what is specific to your p
 
 ### New project
 
-1. On GitHub, **Use this template** → new repository.
+1. On GitHub, open [project-template](https://github.com/diego-castilho/project-template),
+   **Use this template** → new repository. It is this standard already installed, at the
+   latest version.
 2. Clone it and run:
 
    ```bash
