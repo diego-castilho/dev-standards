@@ -2,7 +2,7 @@
 
 <!-- Uma ou duas linhas: o que é o projeto, a stack e de quem ele é fonte da verdade. -->
 
-<!-- standards:begin agent v0.3.0 -->
+<!-- standards:begin agent v0.3.1 -->
 
 Este projeto segue o [dev-standards](https://github.com/diego-castilho/dev-standards),
 na versão de `standardsVersion` do [.standards.json](.standards.json).

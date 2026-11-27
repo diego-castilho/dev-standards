@@ -42,7 +42,9 @@ existe, e atualiza depois sem sobrescrever o que é próprio do seu projeto.
 
 ### Projeto novo
 
-1. No GitHub, **Use this template** → repositório novo.
+1. No GitHub, abra o [project-template](https://github.com/diego-castilho/project-template),
+   **Use this template** → repositório novo. Ele é este padrão já instalado, na versão
+   mais recente.
 2. Clone e rode:
 
    ```bash

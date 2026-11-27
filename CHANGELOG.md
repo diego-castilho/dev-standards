@@ -12,6 +12,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-27
+
+### 🇧🇷 Português
+
+#### Corrigido
+- **`install.sh --here` num repositório criado do `project-template`.** O modelo do `standards.yml` passa a ir junto para os projetos, e as skills vêm sempre do `diego-castilho/dev-standards` (ou de `STANDARDS_REPO`), não do repositório citado no `.standards.json` do projeto. Antes, o `--here` falhava sem o modelo e tentava instalar as skills do próprio projeto.
+
+#### Documentação
+- **Projeto novo começa pelo `project-template`**, o padrão já instalado na versão mais recente.
+
+### 🇺🇸 English
+
+#### Fixed
+- **`install.sh --here` in a repository made from `project-template`.** The `standards.yml` template now travels to projects, and the skills always come from `diego-castilho/dev-standards` (or `STANDARDS_REPO`), not from the repository named in the project's `.standards.json`. Before, `--here` failed without the template and tried to install the skills from the project itself.
+
+#### Documentation
+- **A new project starts from `project-template`**, the standard already installed at the latest version.
+
 ## [0.3.0] - 2026-11-27
 
 ### 🇧🇷 Português
