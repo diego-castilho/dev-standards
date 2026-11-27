@@ -43,13 +43,17 @@ gh issue list -R "$OTHER_REPO" --label "from:$SELF,needs-verification" --state c
    commit deste repo usado na análise), contexto, pedido, contrato afetado, critérios de
    aceite, paridade, fora de escopo.
 3. **PARE:** mostre título, labels e corpo ao usuário. O hook pede confirmação de novo.
-4. Crie com as labels explícitas (as do template só valem na interface web):
+4. Crie com tipo e labels explícitos (o que o template define só vale na interface web), e
+   depois defina a prioridade:
 
    ```bash
-   gh issue create -R "$OTHER_REPO" --title "<resumo no imperativo>" \
-     --label "xrepo,from:$SELF,type:<tipo>,priority:<p0|p1|p2>" \
-     --body-file /tmp/xrepo-body.md
+   url=$(gh issue create -R "$OTHER_REPO" --title "<resumo no imperativo>" \
+     --type <Bug|Feature|Task|Docs|Question> --label "xrepo,from:$SELF" \
+     --body-file /tmp/xrepo-body.md)
+   .standards/issue-types.sh priority "$OTHER_REPO" "${url##*/}" <Urgent|High|Medium|Low>
    ```
+
+   Mudança de contrato leva também a label `contract`.
 
 5. Um pedido por issue. Se a mesma regra tem que existir nos dois lados, acrescente `parity`.
 6. Nascido de um PR ou commit daqui: cite-o na issue, e cite a issue no PR

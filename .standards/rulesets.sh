@@ -17,7 +17,10 @@ repo="${1:-$(jq -r '.project.repo // empty' .standards.json)}"
 
 echo "Configuração do repositório $repo:"
 gh api -X PATCH "repos/$repo" -F delete_branch_on_merge=true -F allow_merge_commit=true \
-  -F allow_squash_merge=true -F allow_rebase_merge=false >/dev/null && echo "  merge commit e squash; rebase desligado; branch apagada no merge"
+  -F allow_squash_merge=true -F allow_rebase_merge=false -F allow_update_branch=true \
+  -f merge_commit_title=PR_TITLE -f merge_commit_message=PR_BODY \
+  -f squash_merge_commit_title=PR_TITLE -f squash_merge_commit_message=PR_BODY >/dev/null &&
+  echo "  merge commit e squash com título e descrição do PR; rebase desligado; branch apagada no merge"
 if gh api "repos/$repo/branches/develop" >/dev/null 2>&1; then
   gh api -X PATCH "repos/$repo" -f default_branch=develop >/dev/null && echo "  branch padrão: develop"
 else

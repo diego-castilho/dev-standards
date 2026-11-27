@@ -12,22 +12,50 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-27
+
 ### 🇧🇷 Português
 
 #### Adicionado
+- **O `verify` confere o modelo do `standards.yml`.** O Dependabot atualiza os workflows mas não o modelo que o instalador copia; se o `actions/checkout` dos dois divergir, o `verify` falha.
+- **Checagens como action composta.** `diego-castilho/dev-standards/check@vX.Y.Z` roda as regras "Auto" a partir da própria cópia do `check.sh`; o `standards.yml` dos projetos passa a ser gerado com a tag da versão e não é mais cópia do workflow. **Ao atualizar um projeto:** rode `gh actions-lock` de novo e, se as Actions forem restritas, libere `diego-castilho/dev-standards/check@*`.
+- **Lockfile de Actions e Dependabot.** Toda action fica fixada num commit em `.github/workflows/actions.lock` (`gh actions-lock`), conferido pela checagem `standards` em todo PR. O `.github/dependabot.yml` semeado abre um PR por ecossistema e semana, minor e patch agrupados, na `develop`, com título `chore(deps): …`. **Ao atualizar um projeto:** rode `gh actions-lock` e commite o lockfile.
+- **Tipos de issue e campo Priority nativos.** `.standards/issue-types.sh setup` cria ou atualiza na conta (ou organização) os tipos `Bug`, `Feature`, `Task`, `Docs` e `Question` e o campo Priority (`Urgent`, `High`, `Medium`, `Low`), a partir de `.standards/issue-types.json`. `migrate` copia as labels antigas (`type:*`, `priority:*`, `bug`, `enhancement`…) para tipo e Priority sem tirar label nem sobrescrever o que já foi definido; `priority` define a prioridade de uma issue, que o `gh` não faz.
+- **Formulários de documentação e de pergunta**, e todo formulário de issue já define o tipo.
 - **ADR-0001: recursos nativos do GitHub primeiro.** Registra, a partir da leitura da documentação do GitHub e do manual do `gh`, o que o padrão passa a usar de nativo (tipos e campos de issue, dependências, sub-issues, rulesets, releases imutáveis, Projects, milestones, topics, stacked PRs, composite action, lockfile de Actions) e o que continua script, com o motivo. O resumo da leitura fica em `docs/referencias/github-nativo.md`.
 - **Mapa visual das regras** em `docs/REGRAS.md`, com diagramas Mermaid que o GitHub desenha: onde vive cada regra, o ciclo de uma mudança, o gitflow com hotfix, branches, commits, PR e merge, release, hotfix, o ciclo de vida de uma issue, os pedidos entre repositórios, o trabalho com agentes e as travas. Cada regra diz como é garantida e aponta para a sua fonte. O instalador leva o mapa aos projetos, com uma seção própria no fim que o sync não altera.
 
 #### Alterado
+- **Mapa de regras da 0.3.0.** O `docs/REGRAS.md` passa a mostrar os rulesets do GitHub ao lado dos hooks (em repositório privado, com GitHub Pro), a action `check`, os tipos de issue e o Priority, os Projects com as colunas e automações, o merge na `develop` pelo título do PR, a regra de assinatura sem contorno e uma seção nova de dependências e Actions.
+- **Merge na `develop` sem `--subject`.** O merge commit leva o título e a descrição do PR, por configuração do repositório que o `rulesets.sh` passa a aplicar, em vez de "Merge pull request #N from …".
+- **Assinatura sem contorno.** O `CLAUDE.md` proíbe criar commit pela API, pela web ou com outra chave quando a assinatura do mantenedor falha; o agente para e pede a aprovação. Só automação em workflow sai pela API. Os commits dos #9 e #10 foram criados pela API antes desta regra.
+- **Skills instaladas com `gh skill`.** O instalador instala `/release`, `/hotfix` e `/xrepo` com `gh skill install`, fixadas na tag da versão, em vez de copiá-las; `gh skill list` e `gh skill update` passam a saber de onde vieram. Sem `gh skill`, ou antes de a tag existir, elas são copiadas como antes.
+- **PRs empilhados com `gh stack`.** O contorno manual (trocar base, fechar e reabrir, recriar branch) sai; a pilha é criada, enviada e mergeada de baixo para cima pela extensão `github/gh-stack`, com CI em cada PR e commits rebaseados assinados.
+- **`actions/checkout` 7.0.1** nos workflows e no modelo do `standards.yml` (era 4.4.0). A v7 recusa checkout de PR de fork em `pull_request_target` e `workflow_run`, que o padrão não usa.
+- **Labels `type:*` e `priority:*` saem do padrão.** `labels.sh --prune` só apaga uma delas quando todas as suas issues já têm tipo ou Priority; `type:contract` vira a label `contract`. As skills `/hotfix`, `/release` e `/xrepo` abrem issue com `--type` e definem a prioridade pelo script. **Ao atualizar um projeto:** rode `issue-types.sh setup` uma vez por conta, `issue-types.sh migrate` em cada repositório e só depois `labels.sh --prune`.
+- **README genérico.** A abertura do README explica o que o projeto é e o que cobre, sem jargão de quem o criou.
 - **Repositório público, com histórico recomeçado.** O padrão passa a viver num repositório público, e o anterior fica privado e arquivado. O histórico começa num commit de importação para não publicar e-mail pessoal nem nomes de projetos privados; as versões 0.1.0 e 0.2.0 continuam descritas abaixo.
 
 ### 🇺🇸 English
 
 #### Added
+- **`verify` checks the `standards.yml` template.** Dependabot updates the workflows but not the template the installer copies; if their `actions/checkout` differ, `verify` fails.
+- **Checks as a composite action.** `diego-castilho/dev-standards/check@vX.Y.Z` runs the "Auto" rules from its own copy of `check.sh`; a project's `standards.yml` is now generated with the version tag instead of being a copy of the workflow. **When updating a project:** run `gh actions-lock` again and, if Actions are restricted, allow `diego-castilho/dev-standards/check@*`.
+- **Actions lockfile and Dependabot.** Every action is pinned to a commit in `.github/workflows/actions.lock` (`gh actions-lock`), verified by the `standards` check on every PR. The seeded `.github/dependabot.yml` opens one PR per ecosystem and week, minor and patch grouped, into `develop`, titled `chore(deps): …`. **When updating a project:** run `gh actions-lock` and commit the lockfile.
+- **Native issue types and Priority field.** `.standards/issue-types.sh setup` creates or updates, on the account (or organization), the `Bug`, `Feature`, `Task`, `Docs` and `Question` types and the Priority field (`Urgent`, `High`, `Medium`, `Low`), from `.standards/issue-types.json`. `migrate` copies the old labels (`type:*`, `priority:*`, `bug`, `enhancement`…) into type and Priority without removing labels or overwriting what is already set; `priority` sets an issue's priority, which `gh` cannot do.
+- **Docs and question issue forms**, and every issue form now sets the issue type.
 - **ADR-0001: native GitHub features first.** Records, from a read of GitHub's documentation and the `gh` manual, what the standard now uses natively (issue types and fields, dependencies, sub-issues, rulesets, immutable releases, Projects, milestones, topics, stacked PRs, a composite action, the Actions lockfile) and what stays a script, and why. The reading summary lives in `docs/referencias/github-nativo.md`.
 - **Visual map of the rules** in `docs/REGRAS.md`, with Mermaid diagrams GitHub renders: where each rule lives, a change's lifecycle, gitflow with hotfix, branches, commits, PRs and merges, release, hotfix, an issue's lifecycle, cross-repo requests, working with agents and the guards. Each rule says how it is enforced and points to its source. The installer ships the map to projects, with a project section at the end that the sync leaves alone.
 
 #### Changed
+- **Rules map for 0.3.0.** `docs/REGRAS.md` now shows GitHub rulesets next to the hooks (GitHub Pro for private repositories), the `check` action, issue types and Priority, the Projects with their columns and automations, merging into `develop` by the PR title, the no-workaround signing rule and a new dependencies and Actions section.
+- **Merging into `develop` without `--subject`.** The merge commit takes the PR title and body, through a repository setting that `rulesets.sh` now applies, instead of "Merge pull request #N from …".
+- **No way around signing.** `CLAUDE.md` forbids creating a commit through the API, the web or another key when the maintainer's signature fails; the agent stops and asks for approval. Only workflow automation goes through the API. The commits of #9 and #10 were created through the API before this rule.
+- **Skills installed with `gh skill`.** The installer installs `/release`, `/hotfix` and `/xrepo` with `gh skill install`, pinned to the version tag, instead of copying them; `gh skill list` and `gh skill update` now know where they came from. Without `gh skill`, or before the tag exists, they are copied as before.
+- **Stacked PRs with `gh stack`.** The manual workaround (changing bases, closing and reopening, recreating branches) is gone; the stack is created, submitted and merged bottom-up by the `github/gh-stack` extension, with CI on each PR and signed rebased commits.
+- **`actions/checkout` 7.0.1** in the workflows and in the `standards.yml` template (was 4.4.0). v7 refuses to check out fork PRs on `pull_request_target` and `workflow_run`, which the standard does not use.
+- **The `type:*` and `priority:*` labels leave the standard.** `labels.sh --prune` deletes one only when all its issues already have a type or a Priority; `type:contract` becomes the `contract` label. The `/hotfix`, `/release` and `/xrepo` skills open issues with `--type` and set the priority through the script. **When updating a project:** run `issue-types.sh setup` once per account, `issue-types.sh migrate` in each repository, and only then `labels.sh --prune`.
+- **A generic README.** The README opening explains what the project is and what it covers, without its author's shorthand.
 - **Public repository, with a fresh history.** The standard now lives in a public repository, and the previous one stays private and archived. History starts at an import commit so that no personal email or private project name is published; versions 0.1.0 and 0.2.0 are still described below.
 
 ## [0.2.0] - 2026-11-22

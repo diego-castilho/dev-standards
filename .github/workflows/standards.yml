@@ -1,12 +1,14 @@
 # ============================================================================
 # dev-standards — the "Auto" rules of CONTRIBUTING.md on every PR
 # ============================================================================
-# Owned by the standard: the standards sync replaces this file. Project
-# checks (build, tests, lint) live in ci.yml, which belongs to the project.
+# In this repository the action runs from the same checkout (./check), so a
+# PR checks itself with the rules it changes. Projects get this file from
+# .standards/templates/standards.yml, pointing at a version tag.
 #
-# Checks: .standards.json, the branch name and base, the PR title, every
-# commit subject in the PR, that EN/PT document pairs have the same
-# sections, and that no private network address sits in Markdown. The logic is in .standards/check.sh, which runs the same locally.
+# The checks themselves are the dev-standards/check action, at the version
+# tag below: branch name and base, PR title, commit subjects, EN/PT section
+# parity, private addresses in Markdown and the Actions lockfile. Locally,
+# .standards/check.sh runs the same.
 # ============================================================================
 
 name: Standards
@@ -28,35 +30,10 @@ jobs:
     name: padrão · standards
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    env:
-      HEAD_REF: ${{ github.head_ref }}
-      BASE_REF: ${{ github.base_ref }}
-      PR_TITLE: ${{ github.event.pull_request.title }}
-      BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
 
-      - name: Configuração (.standards.json)
-        run: bash .standards/check.sh config
-
-      - name: Branch e base
-        run: bash .standards/check.sh branch "$HEAD_REF" "$BASE_REF"
-
-      - name: Título do PR
-        run: bash .standards/check.sh title "$PR_TITLE" "$HEAD_REF" "$BASE_REF"
-
-      # The release and hotfix PRs carry commits already checked on the way
-      # into develop (or the hotfix branch), plus merges; check only the rest.
-      - name: Commits
-        if: github.base_ref == 'develop'
-        run: bash .standards/check.sh commits "$BASE_SHA" "$HEAD_SHA"
-
-      - name: Documentos EN/PT
-        run: bash .standards/check.sh bilingual
-
-      - name: Dados sensíveis em Markdown
-        run: bash .standards/check.sh docs
+      - uses: ./check

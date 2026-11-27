@@ -3,7 +3,7 @@
 > 🇺🇸 [English version](CONTRIBUTING.md). As duas versões mudam juntas, no mesmo PR,
 > e o CI confere que têm as mesmas seções.
 
-<!-- standards:begin core v0.2.0 -->
+<!-- standards:begin core v0.3.0 -->
 
 ## Princípios
 
@@ -29,7 +29,7 @@ Valem para qualquer mudança, de qualquer pessoa ou agente:
 | Processo: branch, commit, PR, merge, release, hotfix, issues | este arquivo | Doc + Auto |
 | O que é específico de agente: início de sessão, paradas, worktrees | [CLAUDE.md](CLAUDE.md) | Doc + Confirma |
 | Configuração do projeto: escopos, versão, gates, produção | [.standards.json](.standards.json) | Auto |
-| Release, hotfix e pedidos entre repos, executáveis | skills [`/release`](.claude/skills/release/SKILL.md), [`/hotfix`](.claude/skills/hotfix/SKILL.md) e [`/xrepo`](.claude/skills/xrepo/SKILL.md) | Skill |
+| Release, hotfix e pedidos entre repos, executáveis | skills [`/release`](.claude/skills/release/SKILL.md), [`/hotfix`](.claude/skills/hotfix/SKILL.md) e [`/xrepo`](.claude/skills/xrepo/SKILL.md), instaladas com `gh skill` na versão do padrão | Skill |
 | Travas do agente | [.claude/settings.json](.claude/settings.json) e [.claude/hooks/](.claude/hooks/) | Confirma + Bloqueado |
 | Checagem de commits, branches e PRs | workflow `standards` do `dev-standards` | Auto |
 | Proteção das branches no GitHub | `.standards/rulesets.sh` | Bloqueado |
@@ -79,16 +79,21 @@ que `git branch -r --no-merged origin/develop` não a lista.
 
 ### PRs empilhados
 
-Um PR cuja base é a branch de outro PR pede cuidado:
+Quando uma mudança é grande demais para um PR, divida-a numa pilha de PRs que se apoiam uns
+nos outros e cuide dela com o **`gh stack`** (extensão
+[github/gh-stack](https://github.com/github/gh-stack)), que o GitHub reconhece como pilha:
 
-- o CI só roda em PR com base `develop` ou `main`, e mudar a base de um PR aberto não o
-  dispara;
-- apagar a branch de base no merge pode **fechar** o PR dependente em vez de redirecioná-lo.
+1. `gh stack init` a partir da `develop` e `gh stack add <branch>` para cada camada; cada
+   branch segue as regras de nome.
+2. `gh stack submit` envia todas as branches e abre os PRs. As regras e o CI de cada PR são
+   avaliados contra a `develop`, o tronco da pilha.
+3. Revise e faça o merge **de baixo para cima** com `gh stack merge --merge`. A extensão
+   aponta os PRs de cima para a nova base e faz o rebase, e os commits rebaseados saem
+   assinados.
+4. `gh stack sync` atualiza a pilha local depois de qualquer mudança no GitHub.
 
-Antes de mergear o PR de baixo, mude a base de cada dependente para `develop`
-(`gh pr edit N --base develop`) e feche e reabra cada um para o CI rodar. Se um dependente
-fechar, recrie a branch de base no mesmo commit (`git push origin <sha>:refs/heads/<branch>`),
-reabra o PR, mude a base e apague a branch de novo.
+Nunca mude à mão a base de um PR da pilha nem apague você mesmo uma branch dela: as duas
+coisas deixam a pilha do GitHub fora de sincronia com as branches.
 
 ## Commits
 
@@ -167,11 +172,13 @@ merge de PR com base `main` que não seja de release ou de hotfix (Bloqueado).
 
 | PR | Método | Comando |
 |---|---|---|
-| branch curta → `develop` | merge commit | `gh pr merge N --merge --delete-branch --subject "Merge pull request #N from <owner>/<branch>"` |
+| branch curta → `develop` | merge commit | `gh pr merge N --merge --delete-branch` |
 | release `develop` → `main` | squash | `gh pr merge N --squash --subject "release: vX.Y.Z" --body "<uma linha>"` |
 | hotfix → `main` | squash | `gh pr merge N --squash --subject "hotfix: vX.Y.Z" --body "<uma linha>"` |
 
-Sem `--subject`, a `main` fica com "título (#N)".
+Sem `--subject`, a `main` fica com "título (#N)". Na `develop` não há `--subject`: o
+repositório é configurado (`rulesets.sh`) para o merge commit levar o título e a descrição do
+PR, que se leem melhor no `git log` que "Merge pull request #N from …".
 
 A **branch padrão no GitHub é a `develop`** (`rulesets.sh` configura): PRs novos, inclusive os
 do Dependabot, já nascem com a base certa. Um PR que chegar com base `main` sem ser de
@@ -215,7 +222,7 @@ Para um defeito **em produção** que não pode esperar, quando a `develop` já 
 ainda não pode sair. Se a `develop` puder sair inteira, faça uma release patch normal.
 Roteiro executável: skill [`/hotfix`](.claude/skills/hotfix/SKILL.md).
 
-1. **Issue** com `type:bug` e `priority:p0`. **PARE:** confirmar que é hotfix e não release.
+1. **Issue** do tipo `Bug` com Priority `Urgent`. **PARE:** confirmar que é hotfix e não release.
 2. **Branch `hotfix/X.Y.Z`** a partir da **tag em produção**, não da `develop`:
    `git switch -c hotfix/1.4.1 v1.4.0`. Assim nada que está em andamento vai junto.
 3. Na branch, nesta ordem: o teste que falha sem a correção, a correção, o bump de versão
@@ -247,22 +254,37 @@ usa, não repete a mensagem do commit, e cita a issue (`(#123)`).
 **Toda pendência vira issue**, no repositório onde o trabalho acontece, nunca item de um
 `BACKLOG.md`, de um plano ou de uma lista de TODO. Um documento pode agrupar pendências
 (um plano de correção, um roadmap), mas cada item aberto aponta para a sua issue. Use os
-[templates](.github/ISSUE_TEMPLATE/): bug, funcionalidade, tarefa e, entre repositórios,
-pedido xrepo. Issue em branco é desligada.
+[templates](.github/ISSUE_TEMPLATE/): bug, funcionalidade, tarefa, documentação, pergunta
+e, entre repositórios, pedido xrepo. Cada formulário já define o tipo da issue. Issue em
+branco é desligada. Um
+repositório que não segue o padrão recebe os mesmos formulários, sem o de xrepo, do
+repositório público `.github` da conta.
 
-As labels são as mesmas em todos os projetos, criadas por `.standards/labels.sh`:
+Tipo e prioridade são **recursos nativos do GitHub**, definidos uma vez por conta ou
+organização por `.standards/issue-types.sh setup`, a partir de `.standards/issue-types.json`:
+
+| O quê | Valores | Regra |
+|---|---|---|
+| Tipo de issue | `Bug`, `Feature`, `Task`, `Docs`, `Question` | exatamente um |
+| Campo Priority | `Urgent` (bloqueante ou risco ao usuário), `High` (quebrado, sem risco), `Medium` (melhoria relevante), `Low` (pode esperar) | exatamente um, definido na triagem |
+
+`gh issue create --type <Tipo>` define o tipo; o `gh` não tem opção para campo de issue,
+então a prioridade passa por `.standards/issue-types.sh priority <owner/repo> <n> <valor>`.
+Busca: `type:Bug` e `field.priority:urgent`.
+
+As labels cobrem o que o GitHub não tem de nativo. São as mesmas em todos os projetos,
+criadas por `.standards/labels.sh`:
 
 | Grupo | Labels | Regra |
 |---|---|---|
-| Tipo | `type:bug`, `type:feature`, `type:docs`, `type:chore`, `type:question`, `type:contract` | exatamente uma |
-| Prioridade | `priority:p0` (bloqueante ou risco ao usuário), `priority:p1` (quebrado, sem risco), `priority:p2` (pode esperar) | exatamente uma |
+| Contrato | `contract` | a mudança mexe num contrato que outro repositório consome |
 | Estado | `status:needs-info`, `status:needs-decision`, `status:blocked` | zero ou mais |
 | Verificação | `needs-verification` | resolvida, aguardando quem pediu |
 | Entre repos | `xrepo`, `from:<repo>`, `parity` | só com `xrepo.enabled` |
 
 Ciclo de uma issue:
 
-1. Aberta com tipo e prioridade.
+1. Aberta com tipo; a prioridade é definida na triagem.
 2. Branch com o número (`fix/123-slug`) e PR com `Refs #123`.
 3. Depois do merge, um comentário de resolução e o fechamento:
 
@@ -280,8 +302,9 @@ Ciclo de uma issue:
 **Entre repositórios** (`xrepo.enabled`), a issue mora no repo onde o trabalho acontece. O
 roteiro executável, com os comandos, é a skill [`/xrepo`](.claude/skills/xrepo/SKILL.md):
 
-- quem pede abre a issue no outro repo, com `xrepo`, `from:<este-repo>`, tipo e prioridade,
-  passando as labels explicitamente no `gh issue create` (as do template só valem na web);
+- quem pede abre a issue no outro repo com tipo e as labels `xrepo` e `from:<este-repo>`,
+  passados explicitamente no `gh issue create` (o que o template define só vale na web), e
+  depois define a prioridade;
 - quem trata comenta a resolução, adiciona `needs-verification` e fecha;
 - quem pediu confere contra os critérios de aceite e remove `needs-verification`, ou reabre
   dizendo o que falta. **Quem pediu é o único que remove `needs-verification`; quem tratou é
@@ -304,6 +327,23 @@ roteiro executável, com os comandos, é a skill [`/xrepo`](.claude/skills/xrepo
   commit que descreve, aponta os
   links de código para esse commit, usa um prefixo de ID que ainda não existe no repo
   (`git grep -wE '<PREFIXO>[0-9]{2}'` vazio) e cada achado pendente tem issue.
+
+## Dependências
+
+- **As Actions ficam fixadas num lockfile.** O `gh actions-lock` (extensão
+  [github/gh-actions-lock](https://github.com/github/gh-actions-lock)) grava
+  `.github/workflows/actions.lock`, com cada action, inclusive as transitivas, fixada num
+  commit; o runner recusa um pin que não confere. Rode depois de incluir ou mudar um `uses:` e
+  commite o lockfile junto com o workflow. A checagem `standards` confere em todo PR.
+- **O Dependabot abre as atualizações** (`.github/dependabot.yml`, semeado uma vez e depois do
+  projeto): um PR por ecossistema e por semana, minor e patch agrupados, com base na `develop`,
+  com título `chore(deps): …`. Atualização de segurança chega sozinha, assim que sai o alerta.
+  Acrescente um bloco para cada ecossistema que o projeto usa.
+- Atualização de dependência entra como qualquer PR: CI verde, merge commit na `develop`.
+- **As checagens rodam como uma action.** O `standards.yml` do projeto chama
+  `diego-castilho/dev-standards/check@vX.Y.Z`, então a versão da tag é a versão cobrada, e o
+  sync só troca essa tag. Se o repositório restringe as Actions permitidas, libere
+  `diego-castilho/dev-standards/check@*`.
 
 ## Dados sensíveis
 

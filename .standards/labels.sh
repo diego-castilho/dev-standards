@@ -12,7 +12,10 @@
 #      repository in the group (this one and xrepo.repos).
 #   4. With --prune, deletes the GitHub default labels the standard does not
 #      use — only those with no issue or PR at all. One in use is listed and
-#      kept.
+#      kept. It also retires the old type and priority labels (type:*,
+#      priority:*, bug, enhancement, documentation, question): each is
+#      deleted only when every issue that has it already has an issue type
+#      or a Priority value, which .standards/issue-types.sh migrate sets.
 #
 # Usage: .standards/labels.sh [owner/repo] [--prune] [--dry-run]
 # ============================================================================
@@ -29,13 +32,13 @@ done
 
 # old name → standard name
 MIGRATE=(
-  "bug=type:bug"
-  "enhancement=type:feature"
-  "documentation=type:docs"
-  "question=type:question"
   "needs-decision=status:needs-decision"
-  "type:api-contract=type:contract"
+  "type:contract=contract"
+  "type:api-contract=contract"
 )
+# Replaced by issue types and the Priority field (issue-types.sh migrate)
+RETIRED_TYPE=(type:bug type:feature type:docs type:chore type:question bug enhancement documentation question)
+RETIRED_PRIORITY=(priority:p0 priority:p1 priority:p2)
 # GitHub defaults the standard does not use (deleted by --prune when unused)
 DEFAULTS=(duplicate "good first issue" "help wanted" invalid wontfix)
 
@@ -81,6 +84,32 @@ if [ "$(jq -r '.xrepo.enabled // false' "$config")" = "true" ]; then
 fi
 
 if [ "$prune" -eq 1 ]; then
+  echo "· labels substituídas por tipo e Priority"
+  api() { gh api -H "X-GitHub-Api-Version: 2026-03-10" "$@"; }
+  owner="${repo%%/*}"
+  fields_path="user/issue-fields"
+  [ "$(api "users/$owner" --jq .type)" = "Organization" ] && fields_path="orgs/$owner/issue-fields"
+  fid="$(api "$fields_path" --jq '.[] | select(.name == "Priority") | .id' 2>/dev/null || true)"
+  retire() { # label kind
+    local l="$1" kind="$2" nums missing=0 n
+    exists "$l" || return 0
+    nums="$(gh issue list --repo "$repo" --label "$l" --state all --limit 1000 --json number -q '.[].number')"
+    for n in $nums; do
+      if [ "$kind" = type ]; then
+        [ -n "$(api "repos/$repo/issues/$n" --jq '.type.name // empty')" ] || missing=$((missing + 1))
+      else
+        [ -n "$fid" ] && [ "$(api "repos/$repo/issues/$n/issue-field-values" --jq "[.[] | select(.issue_field_id == $fid)] | length")" != "0" ] || missing=$((missing + 1))
+      fi
+    done
+    if [ "$missing" -gt 0 ]; then
+      echo "  mantida: $l ($missing issues sem $([ "$kind" = type ] && echo tipo || echo Priority); rode .standards/issue-types.sh migrate)"
+    else
+      run gh label delete "$l" --repo "$repo" --yes >/dev/null; echo "  removida: $l"
+    fi
+  }
+  for l in "${RETIRED_TYPE[@]}"; do retire "$l" type; done
+  for l in "${RETIRED_PRIORITY[@]}"; do retire "$l" priority; done
+
   echo "· limpeza"
   for d in "${DEFAULTS[@]}"; do
     exists "$d" || continue

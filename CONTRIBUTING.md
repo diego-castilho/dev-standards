@@ -3,7 +3,7 @@
 > 🇧🇷 [Versão em português](CONTRIBUTING.pt-BR.md). Both versions change together, in the
 > same PR, and CI checks that they have the same sections.
 
-<!-- standards:begin core v0.2.0 -->
+<!-- standards:begin core v0.3.0 -->
 
 ## Principles
 
@@ -29,9 +29,9 @@ They apply to every change, by any person or agent:
 | Process: branch, commit, PR, merge, release, hotfix, issues | this file | Doc + Auto |
 | What is agent-specific: session start, stops, worktrees | [CLAUDE.md](CLAUDE.md) | Doc + Confirm |
 | Project configuration: scopes, version, gates, production | [.standards.json](.standards.json) | Auto |
-| Executable release, hotfix and cross-repo requests | skills [`/release`](.claude/skills/release/SKILL.md), [`/hotfix`](.claude/skills/hotfix/SKILL.md) and [`/xrepo`](.claude/skills/xrepo/SKILL.md) | Skill |
+| Executable release, hotfix and cross-repo requests | skills [`/release`](.claude/skills/release/SKILL.md), [`/hotfix`](.claude/skills/hotfix/SKILL.md) and [`/xrepo`](.claude/skills/xrepo/SKILL.md), installed with `gh skill` at the standard's version | Skill |
 | Agent guards | [.claude/settings.json](.claude/settings.json) and [.claude/hooks/](.claude/hooks/) | Confirm + Blocked |
-| Commit, branch and PR checks | the `dev-standards` `standards` workflow | Auto |
+| Commit, branch and PR checks, Actions lockfile | the `dev-standards` `standards` workflow | Auto |
 | Branch protection on GitHub | `.standards/rulesets.sh` | Blocked |
 | All of this as a visual map, with diagrams (not a source: it points here) | [docs/REGRAS.md](docs/REGRAS.md) (PT) | — |
 
@@ -78,16 +78,20 @@ check that `git branch -r --no-merged origin/develop` does not list it.
 
 ### Stacked PRs
 
-A PR whose base is another PR's branch needs care:
+When a change is too big for one PR, split it into a stack of PRs that build on each other
+and manage it with **`gh stack`** (the [github/gh-stack](https://github.com/github/gh-stack)
+extension), which GitHub knows as a stack:
 
-- CI only runs on PRs based on `develop` or `main`, and changing an open PR's base does not
-  trigger it;
-- deleting the base branch on merge can **close** the dependent PR instead of retargeting it.
+1. `gh stack init` from `develop`, then `gh stack add <branch>` for each layer; each branch
+   follows the branch-name rules.
+2. `gh stack submit` pushes every branch and opens the PRs. Each PR's rules and CI are
+   evaluated against `develop`, the stack's trunk.
+3. Review and merge **from the bottom up** with `gh stack merge --merge`. The extension
+   retargets the PRs above and rebases them, and the rebased commits are signed.
+4. `gh stack sync` brings the local stack up to date after any change on GitHub.
 
-Before merging the lower PR, change each dependent's base to `develop`
-(`gh pr edit N --base develop`) and close and reopen each one so CI runs. If a dependent
-closes, recreate the base branch on the same commit (`git push origin <sha>:refs/heads/<branch>`),
-reopen the PR, change its base and delete the branch again.
+Never change the base of a PR in a stack by hand, and never delete a stack branch yourself:
+both leave GitHub's stack out of step with the branches.
 
 ## Commits
 
@@ -166,11 +170,13 @@ to merge a `main`-based PR that is neither a release nor a hotfix (Blocked).
 
 | PR | Method | Command |
 |---|---|---|
-| short branch → `develop` | merge commit | `gh pr merge N --merge --delete-branch --subject "Merge pull request #N from <owner>/<branch>"` |
+| short branch → `develop` | merge commit | `gh pr merge N --merge --delete-branch` |
 | release `develop` → `main` | squash | `gh pr merge N --squash --subject "release: vX.Y.Z" --body "<one line>"` |
 | hotfix → `main` | squash | `gh pr merge N --squash --subject "hotfix: vX.Y.Z" --body "<one line>"` |
 
-Without `--subject`, `main` gets "title (#N)".
+Without `--subject`, `main` gets "title (#N)". Into `develop` there is no `--subject`: the
+repository is set (`rulesets.sh`) so that the merge commit takes the PR title and body, which
+reads better in `git log` than "Merge pull request #N from …".
 
 The **default branch on GitHub is `develop`** (`rulesets.sh` sets it): new PRs, Dependabot's
 included, start with the right base. A PR that arrives based on `main` without being a
@@ -214,7 +220,7 @@ For a defect **in production** that cannot wait, when `develop` already holds wo
 cannot ship yet. If `develop` can ship as a whole, cut a normal patch release instead.
 Executable runbook: the [`/hotfix`](.claude/skills/hotfix/SKILL.md) skill.
 
-1. **Issue** with `type:bug` and `priority:p0`. **STOP:** confirm it is a hotfix, not a
+1. **Issue** of type `Bug` with Priority `Urgent`. **STOP:** confirm it is a hotfix, not a
    release.
 2. **`hotfix/X.Y.Z` branch** from the **production tag**, not from `develop`:
    `git switch -c hotfix/1.4.1 v1.4.0`. That way nothing in progress comes along.
@@ -248,22 +254,36 @@ users, does not repeat the commit message, and cites the issue (`(#123)`).
 **All pending work becomes an issue**, in the repository where the work happens, never an
 item in a `BACKLOG.md`, a plan or a TODO list. A document may group pending work (a fix plan,
 a roadmap), but each open item points to its issue. Use the
-[templates](.github/ISSUE_TEMPLATE/): bug, feature, task and, across repositories, xrepo
-request. Blank issues are disabled.
+[templates](.github/ISSUE_TEMPLATE/): bug, feature, task, docs, question and, across
+repositories, xrepo request. Each form sets the issue type. Blank issues are disabled. A
+repository that does not follow the standard gets the same forms, without the xrepo one,
+from the account's public `.github` repository.
 
-Labels are the same in every project, created by `.standards/labels.sh`:
+Type and priority are **native GitHub features**, defined once per account or organization
+by `.standards/issue-types.sh setup` from `.standards/issue-types.json`:
+
+| What | Values | Rule |
+|---|---|---|
+| Issue type | `Bug`, `Feature`, `Task`, `Docs`, `Question` | exactly one |
+| Priority field | `Urgent` (blocking or user at risk), `High` (broken, no risk), `Medium` (worthwhile improvement), `Low` (can wait) | exactly one, set at triage |
+
+`gh issue create --type <Type>` sets the type; `gh` has no flag for issue fields, so the
+priority goes through `.standards/issue-types.sh priority <owner/repo> <n> <value>`. Search
+with `type:Bug` and `field.priority:urgent`.
+
+Labels cover what GitHub has no native feature for. They are the same in every project,
+created by `.standards/labels.sh`:
 
 | Group | Labels | Rule |
 |---|---|---|
-| Type | `type:bug`, `type:feature`, `type:docs`, `type:chore`, `type:question`, `type:contract` | exactly one |
-| Priority | `priority:p0` (blocking or user at risk), `priority:p1` (broken, no risk), `priority:p2` (can wait) | exactly one |
+| Contract | `contract` | the change touches a contract another repository consumes |
 | Status | `status:needs-info`, `status:needs-decision`, `status:blocked` | zero or more |
 | Verification | `needs-verification` | resolved, waiting for the requester |
 | Cross-repo | `xrepo`, `from:<repo>`, `parity` | only with `xrepo.enabled` |
 
 An issue's lifecycle:
 
-1. Opened with a type and a priority.
+1. Opened with a type; the priority is set at triage.
 2. A branch with the number (`fix/123-slug`) and a PR with `Refs #123`.
 3. After the merge, a resolution comment and the close:
 
@@ -282,9 +302,9 @@ An issue's lifecycle:
 happens. The executable runbook, with the commands, is the [`/xrepo`](.claude/skills/xrepo/SKILL.md)
 skill:
 
-- the requester opens the issue in the other repo with `xrepo`, `from:<this-repo>`, a type
-  and a priority, passing the labels explicitly to `gh issue create` (template labels only
-  apply on the web);
+- the requester opens the issue in the other repo with a type and the `xrepo` and
+  `from:<this-repo>` labels, passed explicitly to `gh issue create` (template settings only
+  apply on the web), then sets its priority;
 - whoever handles it comments the resolution, adds `needs-verification` and closes;
 - the requester checks it against the acceptance criteria and removes `needs-verification`,
   or reopens saying what is missing. **Only the requester removes `needs-verification`; only
@@ -307,6 +327,24 @@ skill:
   subfolder when it has several phases, names in its header the commit it describes, points
   code links to that commit, uses an ID prefix not yet in the repo
   (`git grep -wE '<PREFIX>[0-9]{2}'` empty), and each open finding has an issue.
+
+## Dependencies
+
+- **Actions are pinned in a lockfile.** `gh actions-lock` (the
+  [github/gh-actions-lock](https://github.com/github/gh-actions-lock) extension) writes
+  `.github/workflows/actions.lock`, with every action, transitive ones included, pinned to a
+  commit; the runner refuses a pin that does not match. Run it after adding or changing a
+  `uses:` and commit the lockfile with the workflow. The `standards` check verifies it on every
+  PR.
+- **Dependabot opens the updates** (`.github/dependabot.yml`, seeded once and then the
+  project's): one PR per ecosystem and week, minor and patch grouped, based on `develop`,
+  titled `chore(deps): …`. Security updates arrive on their own, as soon as an advisory is out.
+  Add a block for each ecosystem the project uses.
+- A dependency update is merged like any other PR: CI green, merge commit into `develop`.
+- **The checks run as an action.** A project's `standards.yml` calls
+  `diego-castilho/dev-standards/check@vX.Y.Z`, so the version in the tag is the version
+  enforced, and the sync only changes that tag. If the repository restricts which actions may
+  run, allow `diego-castilho/dev-standards/check@*`.
 
 ## Sensitive data
 

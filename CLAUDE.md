@@ -2,7 +2,7 @@
 
 <!-- Uma ou duas linhas: o que é o projeto, a stack e de quem ele é fonte da verdade. -->
 
-<!-- standards:begin agent v0.2.0 -->
+<!-- standards:begin agent v0.3.0 -->
 
 Este projeto segue o [dev-standards](https://github.com/diego-castilho/dev-standards),
 na versão de `standardsVersion` do [.standards.json](.standards.json).
@@ -75,6 +75,15 @@ push**. Quando ele voltar, reassine a pilha a partir do topo com
 `git rebase --update-refs --exec 'git commit --amend --no-edit --no-verify -S' develop` e
 confira cada commit com `git cat-file -p <sha> | grep -c 'BEGIN SSH SIGNATURE'`. Nada sem
 assinatura chega ao GitHub.
+
+**Todo commit é assinado pela chave do mantenedor.** Nunca contorne uma falha de assinatura
+criando o commit por outro caminho: API do GitHub (`createCommitOnBranch`, endpoints de
+conteúdo), edição pela web ou outra chave. O GitHub marca esses commits como verificados, mas
+a assinatura é dele, não do mantenedor. Se a assinatura ou o SSH falharem com o usuário
+presente, pare, diga o erro e peça que ele aprove ou destrave o gerenciador de chaves; um
+`ssh -T git@github.com` dispara um novo pedido. Exceção: commits de automação (bots em
+workflows), que não têm chave do mantenedor e devem sair pela API justamente para serem
+assinados.
 
 <!-- standards:end -->
 

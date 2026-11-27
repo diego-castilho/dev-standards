@@ -2,10 +2,28 @@
 
 > 🇺🇸 [English version](README.md)
 
-Um padrão de desenvolvimento reutilizável para projetos feitos com agentes de IA: gitflow com
-hotfix, Conventional Commits, pull requests, issues e labels, CHANGELOG bilíngue, e as
-travas que mantêm um agente dentro dessas regras. Nasceu das regras de um projeto
-pessoal e fica genérico aqui.
+Um repositório-modelo que dá a um projeto um processo de desenvolvimento escrito e a
+automação que o garante, para que pessoas e agentes de IA trabalhem pelas mesmas regras.
+
+Ele cobre:
+
+- **Branches e versões.** A `main` guarda o que foi lançado e a `develop` reúne o trabalho em
+  andamento. Toda mudança chega por uma branch curta e um pull request, e lançar uma versão
+  ou publicar uma correção urgente segue um roteiro passo a passo.
+- **Um histórico legível.** As mensagens de commit seguem o Conventional Commits com escopo,
+  os pull requests têm formato de título e de descrição, e o CHANGELOG é mantido em inglês
+  e em português.
+- **Issues.** Formulários para bug, funcionalidade e tarefa, um conjunto pequeno de labels e
+  um formato para pedir mudança a outro repositório.
+- **Garantia.** Rulesets do GitHub protegem a `main` e a `develop`, e uma checagem em todo
+  pull request valida nome de branch, título e mensagens de commit. A mesma checagem roda
+  na máquina.
+- **Travas para agentes.** Hooks do Claude Code bloqueiam comandos arriscados, como push na
+  `main`, e pedem confirmação antes de outros, como criar tag, apagar arquivos ou mexer em
+  produção. Skills conduzem o agente por um release e por um hotfix.
+
+Você adota com **Use this template** num repositório novo, ou com o instalador num que já
+existe, e atualiza depois sem sobrescrever o que é próprio do seu projeto.
 
 ## O que tem aqui
 
@@ -30,6 +48,7 @@ pessoal e fica genérico aqui.
    ```bash
    .standards/install.sh --here --name "Meu Projeto"
    git switch -c develop && git push -u origin develop
+   .standards/issue-types.sh setup  # uma vez por conta ou organização
    .standards/labels.sh --prune
    .standards/rulesets.sh          # em repositório privado, exige GitHub Pro
    ```
@@ -64,7 +83,8 @@ são substituídos; no Markdown, só os blocos gerenciados mudam:
 …o seu, nunca alterado…
 ```
 
-Abra o resultado como `chore(standards): sync to vX.Y.Z`.
+As skills `/release`, `/hotfix` e `/xrepo` são instaladas com `gh skill`, fixadas na mesma tag;
+`gh skill list` mostra de onde cada uma veio. Abra o resultado como `chore(standards): sync to vX.Y.Z`.
 
 ## Versionamento
 

@@ -1,6 +1,6 @@
 name: Bug
 description: Algo não funciona como deveria / Something does not work as it should
-labels: ["type:bug"]
+type: Bug
 body:
   - type: markdown
     attributes:
@@ -36,11 +36,11 @@ body:
     id: priority
     attributes:
       label: Prioridade / Priority
-      description: Aplique a label correspondente / Apply the matching label
+      description: Sugestão; quem mantém o projeto define o campo Priority / A suggestion; the maintainer sets the Priority field
       options:
-        - "p0 — bloqueante ou risco ao usuário / blocking or user at risk"
-        - "p1 — quebrado, sem risco / broken, no risk"
-        - "p2 — pode esperar / can wait"
+        - "Urgent — bloqueante ou risco ao usuário / blocking or user at risk"
+        - "High — quebrado, sem risco / broken, no risk"
+        - "Low — pode esperar / can wait"
     validations:
       required: true
   - type: textarea
