@@ -3,7 +3,7 @@
 > 🇺🇸 [English version](CONTRIBUTING.md). As duas versões mudam juntas, no mesmo PR,
 > e o CI confere que têm as mesmas seções.
 
-<!-- standards:begin core v0.2.0 -->
+<!-- standards:begin core v0.3.0 -->
 
 ## Princípios
 
