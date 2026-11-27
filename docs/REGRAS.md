@@ -1,6 +1,6 @@
 # Regras do projeto, num mapa
 
-<!-- standards:begin map v0.3.0 -->
+<!-- standards:begin map v0.3.1 -->
 
 O mapa visual de tudo o que é regra para desenvolver, versionar e publicar neste projeto: o
 que fazer, em que ordem, quando parar e o que a automação garante.

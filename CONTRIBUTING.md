@@ -3,7 +3,7 @@
 > 🇧🇷 [Versão em português](CONTRIBUTING.pt-BR.md). Both versions change together, in the
 > same PR, and CI checks that they have the same sections.
 
-<!-- standards:begin core v0.3.0 -->
+<!-- standards:begin core v0.3.1 -->
 
 ## Principles
 
