@@ -62,6 +62,7 @@ OWNED=(
   .standards/labels.json .standards/issue-types.sh .standards/issue-types.json .standards/rulesets.sh .standards/test-guard-bash.sh .standards/test-check.sh
   .standards/templates/CHANGELOG.md .standards/templates/README.md
   .standards/templates/README.pt-BR.md .standards/templates/standards.json
+  .standards/templates/standards.yml
   docs/adr/0000-template.md docs/REGRAS.md
 )
 # Files seeded once, then owned by the project. The xrepo template is the
@@ -160,7 +161,10 @@ merge_settings() {
 # `gh skill update` and `gh skill list` know where they came from. Without gh
 # skill, or before the tag exists, they are copied as before.
 SKILLS=(release hotfix xrepo)
-standards_repo="$(jq -r '.project.repo // "diego-castilho/dev-standards"' "$src/.standards.json" 2>/dev/null || echo diego-castilho/dev-standards)"
+# Where the skills come from: always the standard's own repository, never the
+# project's (in a repository made from project-template, .standards.json names
+# the project).
+standards_repo="${STANDARDS_REPO:-diego-castilho/dev-standards}"
 install_skills() {
   local s
   for s in "${SKILLS[@]}"; do
